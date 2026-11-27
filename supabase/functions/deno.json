@@ -1,0 +1,21 @@
+{
+  "lock": true,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  },
+  "fmt": {
+    "lineWidth": 100,
+    "semiColons": true
+  },
+  "tasks": {
+    "check": "deno check functions",
+    "test": "deno test --allow-all functions"
+  }
+}

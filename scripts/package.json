@@ -1,0 +1,15 @@
+{
+  "name": "@gateops/scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "doctor": "tsx doctor.ts",
+    "setup": "tsx setup.ts",
+    "release": "tsx release.ts",
+    "seed:demo": "tsx seed-demo.ts"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4"
+  }
+}

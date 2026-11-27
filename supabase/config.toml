@@ -1,0 +1,37 @@
+# GATEOPS Supabase configuration.
+# verify_jwt aktif untuk seluruh fungsi (PRD 22.1, 26.2; To-dos 3.38).
+# Fungsi tetap memeriksa sesi & internal secret sendiri (AGENTS 7.1).
+project_id = "gateops"
+
+[functions.auth]
+verify_jwt = true
+
+[functions.dashboard]
+verify_jwt = true
+
+[functions.personnel]
+verify_jwt = true
+
+[functions.accounts]
+verify_jwt = true
+
+[functions.gates]
+verify_jwt = true
+
+[functions.transactions]
+verify_jwt = true
+
+[functions.gps]
+verify_jwt = true
+
+[functions.activities]
+verify_jwt = true
+
+[functions.persit]
+verify_jwt = true
+
+[functions.audit]
+verify_jwt = true
+
+[functions.health]
+verify_jwt = true

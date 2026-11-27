@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+.vercel/
+
+# Local-only state (demo credentials, QR, setup logs)
+.local/
+.setup/
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Test and coverage output
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor and OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
