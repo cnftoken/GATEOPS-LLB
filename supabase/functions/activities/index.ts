@@ -92,11 +92,12 @@ async function report(
       throw new ApiError("VALIDATION_FAILED");
     }
   }
-  const query = ctx.supabase.from("activities").select(SELECT);
+  const query = ctx.supabase.from("activities").select(SELECT, { count: "exact" });
   applyFilters(query as never, params);
-  const { data } = await query.order("exit_at", { ascending: false }).limit(5001);
+  const { data, count } = await query.order("exit_at", { ascending: false }).limit(5001);
   const rows = (data ?? []) as unknown as Row[];
-  if (rows.length > 5000) throw new ApiError("REPORT_TOO_LARGE");
+  // PostgREST dapat membatasi baris (max-rows), jadi batas 5.000 diperiksa dari count exact.
+  if ((count ?? 0) > 5000 || rows.length > 5000) throw new ApiError("REPORT_TOO_LARGE");
   return success({ data: rows.map(mapRow) });
 }
 

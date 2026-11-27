@@ -11,7 +11,7 @@ import { messageForCode } from "@/lib/messages";
 import type { BerandaData } from "@/lib/types";
 import { Button, Card, Input, PageHeader, Skeleton } from "@/components/ui";
 
-type Phase = "form" | "scan" | "result";
+type Phase = "form" | "scan" | "result" | "retry";
 
 interface ScanResult {
   type: "KELUAR" | "KEMBALI";
@@ -57,10 +57,9 @@ function ScanContent() {
         setScanError(err.message);
         return;
       }
-      // Sesi berakhir / jaringan / server: tutup kamera, tampilkan Scan ulang.
+      // Sesi berakhir / jaringan / server: hentikan kamera, jangan ulang otomatis (PRD 10.6).
       setScanError(err instanceof ApiError ? err.message : messageForCode("NETWORK"));
-      setPhase(isOut ? "scan" : "form");
-      setCameraKey((k) => k + 1);
+      setPhase("retry");
     },
   });
 
@@ -148,6 +147,20 @@ function ScanContent() {
             </p>
           )}
         </div>
+      )}
+
+      {phase === "retry" && (
+        <Card className="max-w-md">
+          <p role="alert" className="text-[15px] text-danger">
+            {scanError ?? messageForCode("NETWORK")}
+          </p>
+          <p className="mt-2 text-[13px] text-ink-2">
+            Tidak ada transaksi yang tercatat. Periksa jaringan Anda, lalu coba lagi.
+          </p>
+          <Button variant="secondary" className="mt-4 w-full" onClick={scanAgain}>
+            Coba lagi
+          </Button>
+        </Card>
       )}
 
       {phase === "result" && result && (

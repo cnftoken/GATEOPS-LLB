@@ -96,6 +96,14 @@ export function CameraScanner({ paused, onDecode }: Props) {
     }
   }, [onDecode]);
 
+  const startRef = useRef(start);
+  useEffect(() => {
+    startRef.current = start;
+  }, [start]);
+  useEffect(() => {
+    void startRef.current();
+  }, []);
+
   useEffect(() => () => stop(), [stop]);
 
   return (

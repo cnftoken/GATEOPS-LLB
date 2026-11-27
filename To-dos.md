@@ -412,20 +412,20 @@ Rujukan: PRD 27.2.
 - [x] S-04 — Form Keluar invalid tak buka kamera, valid buka kamera, gagal kamera (E2E)
 - [x] S-05 — QR invalid pesan & tak ubah status, gate NONAKTIF ditolak (API, E2E)
 - [x] S-06 — Kembali tercatat, SELESAI, durasi, GPS dihapus (API, E2E)
-- [ ] S-07 — Dua request transaksi, kedua ditolak TRANSACTION_IN_PROGRESS (Integration)
+- [x] S-07 — Dua request transaksi, kedua ditolak TRANSACTION_IN_PROGRESS (Integration)
 - [x] S-08 — Gagal di tengah RPC batalkan seluruh perubahan & audit (Database)
 - [x] S-09 — Sesi berakhir saat scan menolak transaksi & hentikan kamera (E2E)
-- [ ] S-10 — Koneksi putus saat scan tanpa transaksi & tanpa retry (E2E)
-- [ ] S-11 — Keluar aktifkan tracking, kirim lokasi tiap 30 detik (E2E)
+- [x] S-10 — Koneksi putus saat scan tanpa transaksi & tanpa retry (E2E)
+- [x] S-11 — Keluar aktifkan tracking, kirim lokasi tiap 30 detik (E2E)
 - [x] S-12 — Status GPS AKTIF/OFFLINE/TIDAK AKTIF, batas 60 detik, pemulihan, izin dicabut (API, E2E)
 - [x] S-13 — Hapus personel hapus Persit terverifikasi, sesi, riwayat atomik (Database, API)
 - [x] S-14 — Reset password sementara, wajib ganti, sesi lain dicabut (API, E2E)
 - [x] S-15 — Lockout 5 kegagalan, terbuka setelah 15 menit (API)
-- [~] S-16 — Riwayat filter & paginasi, PDF batas periode & baris (API, E2E)
+- [x] S-16 — Riwayat filter & paginasi, PDF batas periode & baris (API, E2E)
 - [x] S-17 — KMD tak akses pengelolaan, Personel tak lihat data lain, Persit tak lihat GPS (API, E2E)
 - [x] S-18 — Audit tak dapat diubah/dihapus, RLS tolak anon/authenticated (Database)
 - [x] S-19 — `setup --target local` env kosong berhasil & idempotent (Setup)
-- [~] S-20 — `release` env local jalankan seluruh urutan & health check (Setup)
+- [x] S-20 — `release` env local jalankan seluruh urutan & health check (Setup)
 
 ---
 
@@ -494,3 +494,4 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-27 | 5.7, 5.23 (UI) | PRD 21.3-21.9 | - | `pnpm lint`/`typecheck`/`test`/`build` sukses; `test:e2e` 12/12 | EmptyState ikon + hint; animasi overlay/dialog/sheet 250ms (nonaktif reduced-motion); aria-current navigasi; grid detail/laporan responsif; perbaikan col-span mobile |
 | 2026-11-27 | 5.7 (ikon) | PRD 21.8, AGENTS 8.1 | - | `pnpm lint`/`typecheck`/`test`/`build` sukses; `test:e2e` 12/12 | simbol teks diganti ikon lucide: MoreHorizontal (menu Lainnya), ArrowRight (riwayat); tidak ada emoji pada sumber UI |
 | 2026-11-27 | P0.1-P0.5 | PRD 11.4, 15.5, 22.6, 25.3, 26.4, AGENTS 7.3 | - | `deno lint`/`deno test` 32/32; `pnpm lint`/`typecheck`/`test`/`build` sukses; `integration.check` PASS; `test:e2e` 13/13 (1 skipped) | persit approve/reject/cabut akun keluarga (404 saat tidak berhak), health publik tanpa header, setup produksi sesuai PRD 25.3.2, BFF selalu memakai `messageForCode` (pesan server diabaikan), tombol Keluar (sidebar + sheet) memanggil `auth/logout` lalu redirect `/login` |
+| 2026-11-27 | S-07, S-10, S-11, S-16, S-20 | PRD 10.6, 11.1, 14.2, 22.7, 26.4, 27.2 | - | `integration.check` PASS (S-07 409+409, S-16 paginasi/filter, 31 hari, 5.001 baris 422); `test:e2e` 9/9 (1 skipped); `release --target local` exit 0 | kamera otomatis mulai + retry non-otomatis saat jaringan putus (tanpa transaksi), tracking GPS 30 detik, batas 5.000 baris diperiksa via count exact (max-rows PostgREST), rilis local menjalankan urutan + health tanpa deploy |

@@ -1,6 +1,7 @@
 // Integration & RBAC check (To-dos 7.3/7.9, S-03/04/05/06/17).
 // Menjalankan alur nyata terhadap Edge Functions lokal. Mengembalikan keluar != 0 bila gagal.
 import assert from "node:assert/strict";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { apiFetch } from "./_lib";
 
@@ -89,8 +90,10 @@ async function main(): Promise<void> {
     { name: "Gate Integrasi", location: "Lokasi", status: "AKTIF" },
     saToken,
   );
-  const gateToken = (gate.json as { data?: { token?: string } }).data?.token;
-  assert.ok(gateToken, "token gate tidak ada");
+  const gateBody = gate.json as { data?: { id?: string; token?: string } };
+  const gateToken = gateBody.data?.token;
+  const gateId = gateBody.data?.id;
+  assert.ok(gateToken && gateId, "token/id gate tidak ada");
 
   // S-04 keluar
   const out = await apiFetch(
@@ -106,6 +109,52 @@ async function main(): Promise<void> {
   const back = await apiFetch("transactions/scan", "POST", { token: gateToken }, pToken);
   assert.equal(back.status, 200, `kembali gagal: ${back.status}`);
   assert.equal((back.json as { data?: { presence?: string } }).data?.presence, "DI DALAM");
+
+  // S-07 dua request transaksi saat baris akun terkunci: keduanya ditolak TRANSACTION_IN_PROGRESS.
+  // Kunci dipegang sesi psql terpisah agar kedua request benar-benar tumpang tindih (FOR UPDATE NOWAIT).
+  const dbContainer = execFileSync("docker", ["ps", "--format", "{{.Names}}"], {
+    encoding: "utf8",
+  })
+    .split("\n")
+    .find((n) => n.startsWith("supabase_db_"));
+  assert.ok(dbContainer, "kontainer database Supabase lokal tidak ditemukan");
+  const holder = spawn(
+    "docker",
+    ["exec", "-i", dbContainer, "psql", "-U", "postgres", "-d", "postgres"],
+    { stdio: ["pipe", "ignore", "ignore"] },
+  );
+  holder.stdin.write(
+    `BEGIN; SELECT id FROM accounts WHERE username='${pUser}' FOR UPDATE; SELECT pg_sleep(6); COMMIT;\n`,
+  );
+  await new Promise((r) => setTimeout(r, 700));
+  const race = await Promise.all([
+    apiFetch(
+      "transactions/scan",
+      "POST",
+      { token: gateToken, tujuan: "Rapat", keperluan: "Dinas" },
+      pToken,
+    ),
+    apiFetch(
+      "transactions/scan",
+      "POST",
+      { token: gateToken, tujuan: "Rapat", keperluan: "Dinas" },
+      pToken,
+    ),
+  ]);
+  holder.stdin.end();
+  await new Promise<void>((r) => holder.on("exit", () => r()));
+  assert.deepEqual(
+    race.map((r) => r.status),
+    [409, 409],
+    "dua request saat transaksi berjalan harus ditolak",
+  );
+  for (const r of race) {
+    assert.equal(
+      (r.json as { error?: { code?: string } }).error?.code,
+      "TRANSACTION_IN_PROGRESS",
+      "kode error harus TRANSACTION_IN_PROGRESS",
+    );
+  }
 
   const createdId = (created.json as { data?: { id?: string } }).data?.id;
   assert.ok(createdId, "id personel tidak ada");
@@ -192,6 +241,28 @@ async function main(): Promise<void> {
   assert.ok(row, "personel tidak ada di daftar DI LUAR");
   assert.equal(row?.gpsStatus, "AKTIF", "status GPS harus AKTIF setelah laporan");
 
+  // S-16 riwayat: paginasi & filter tanggal
+  const today = new Date().toISOString().slice(0, 10);
+  const dayStart = new Date();
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayEnd = new Date();
+  dayEnd.setUTCHours(23, 59, 59, 999);
+  const history = await apiFetch(
+    `activities/mine?page=1&pageSize=5&dateFrom=${today}&dateTo=${today}`,
+    "GET",
+    undefined,
+    pToken,
+  );
+  assert.equal(history.status, 200, `riwayat gagal: ${history.status}`);
+  const historyBody = history.json as {
+    data?: unknown[];
+    page?: number;
+    pageSize?: number;
+  };
+  assert.ok(Array.isArray(historyBody.data), "data riwayat harus array");
+  assert.equal(historyBody.page, 1, "page harus 1");
+  assert.equal(historyBody.pageSize, 5, "pageSize harus 5");
+
   // S-16 laporan melebihi 31 hari ditolak
   const tooWide = await apiFetch(
     "activities/report?dateFrom=2026-01-01&dateTo=2026-03-01",
@@ -200,6 +271,44 @@ async function main(): Promise<void> {
     saToken,
   );
   assert.equal(tooWide.status, 400, "periode laporan > 31 hari harus ditolak");
+
+  // S-16 laporan melebihi 5.000 baris ditolak (5.001 baris disisipkan lalu dibersihkan)
+  execFileSync("docker", [
+    "exec",
+    "-i",
+    dbContainer,
+    "psql",
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-c",
+    `INSERT INTO public.activities (personnel_account_id, exit_gate_id, exit_at, return_at, return_gate_id, tujuan, keperluan, status, duration_seconds) SELECT '${createdId}', '${gateId}', now(), now(), '${gateId}', 'Rapat', 'Dinas', 'SELESAI', 0 FROM generate_series(1, 5001);`,
+  ]);
+  const tooMany = await apiFetch(
+    `activities/report?dateFrom=${dayStart.toISOString()}&dateTo=${dayEnd.toISOString()}`,
+    "GET",
+    undefined,
+    saToken,
+  );
+  assert.equal(tooMany.status, 422, "laporan > 5.000 baris harus 422");
+  assert.equal(
+    (tooMany.json as { error?: { code?: string } }).error?.code,
+    "REPORT_TOO_LARGE",
+    "kode error harus REPORT_TOO_LARGE",
+  );
+  execFileSync("docker", [
+    "exec",
+    "-i",
+    dbContainer,
+    "psql",
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-c",
+    `DELETE FROM public.activities WHERE personnel_account_id = '${createdId}';`,
+  ]);
 
   // S-17 Persit tidak boleh membaca GPS
   const persitUser = `ps${Date.now().toString().slice(-6)}`;
@@ -263,7 +372,7 @@ async function main(): Promise<void> {
   assert.equal(locked.status, 429, "lockout harus aktif setelah 5 kegagalan");
 
   console.log(
-    "PASS: integration (bootstrap, RBAC, personel, gate, GPS, laporan, persit, reset, lockout)",
+    "PASS: integration (bootstrap, RBAC, personel, gate, S-07, GPS, S-16, persit, reset, lockout)",
   );
 }
 
