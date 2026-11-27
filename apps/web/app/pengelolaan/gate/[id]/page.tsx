@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/shell";
 import { apiGet, apiMutate, ApiError } from "@/lib/api";
 import { messageForCode } from "@/lib/messages";
+import { QrTokenCard } from "@/components/qr-token";
 import {
   ACCOUNT_TONE,
   Badge,
@@ -132,15 +133,7 @@ function DetailContent({ id }: { id: string }) {
           </div>
         </form>
       </Card>
-      {token && (
-        <Card className="mt-4 max-w-lg border-accent/40">
-          <p className="text-[15px] font-semibold">Token QR baru</p>
-          <p className="mt-1 text-[13px] text-ink-2">Token mentah hanya ditampilkan satu kali.</p>
-          <code className="mt-2 block break-all rounded-control bg-app p-3 text-[13px]">
-            {token}
-          </code>
-        </Card>
-      )}
+      {token && <QrTokenCard token={token} />}
       <ConfirmDialog
         open={confirmRegen}
         title="Regenerasi QR?"

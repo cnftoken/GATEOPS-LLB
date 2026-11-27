@@ -37,13 +37,25 @@ function RiwayatContent() {
   const [page, setPage] = useState(1);
   const [name, setName] = useState("");
   const [nrp, setNrp] = useState("");
+  const [gate, setGate] = useState("");
+  const [tujuan, setTujuan] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [status, setStatus] = useState("");
+  const { data: gates } = useQuery({
+    queryKey: ["gates"],
+    queryFn: () => apiList<{ id: string; name: string }>("gates?page=1&pageSize=100"),
+  });
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["activities", page, name, nrp, status],
+    queryKey: ["activities", page, name, nrp, gate, tujuan, dateFrom, dateTo, status],
     queryFn: () => {
       const params = new URLSearchParams({ page: String(page), pageSize: "25" });
       if (name) params.set("name", name);
       if (nrp) params.set("nrp", nrp);
+      if (gate) params.set("gate", gate);
+      if (tujuan) params.set("tujuan", tujuan);
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
       if (status) params.set("status", status);
       return apiList<ActivityRow>(`activities?${params.toString()}`);
     },
@@ -80,6 +92,52 @@ function RiwayatContent() {
             setPage(1);
           }}
           className="max-w-[140px]"
+        />
+        <select
+          aria-label="Filter gate"
+          value={gate}
+          onChange={(e) => {
+            setGate(e.target.value);
+            setPage(1);
+          }}
+          className="h-11 rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/25"
+        >
+          <option value="">Semua gate</option>
+          {(gates?.data ?? []).map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
+        <Input
+          placeholder="Tujuan"
+          aria-label="Filter tujuan"
+          value={tujuan}
+          onChange={(e) => {
+            setTujuan(e.target.value);
+            setPage(1);
+          }}
+          className="max-w-[180px]"
+        />
+        <Input
+          type="date"
+          aria-label="Dari tanggal"
+          value={dateFrom}
+          onChange={(e) => {
+            setDateFrom(e.target.value);
+            setPage(1);
+          }}
+          className="max-w-[150px]"
+        />
+        <Input
+          type="date"
+          aria-label="Sampai tanggal"
+          value={dateTo}
+          onChange={(e) => {
+            setDateTo(e.target.value);
+            setPage(1);
+          }}
+          className="max-w-[150px]"
         />
         <select
           aria-label="Filter status"

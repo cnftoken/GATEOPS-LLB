@@ -58,6 +58,10 @@ jobs:
           deno-version: v2.x
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      - run: deno task check
+        working-directory: supabase/functions
+      - run: deno task test
+        working-directory: supabase/functions
 
   db:
     name: Database (pgTAP)
@@ -91,7 +95,17 @@ jobs:
           version: latest
       - run: pnpm install --frozen-lockfile
       - run: supabase start
+      - run: pnpm setup -- --target local
+      - run: |
+          supabase functions serve --env-file .env.local > /tmp/functions.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:54321/functions/v1/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/functions.log
+          exit 1
       - run: pnpm test
+      - run: npx tsx scripts/integration.check.ts
 
   e2e:
     name: E2E (Playwright)
@@ -107,6 +121,20 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - run: pnpm setup -- --target local
+      - run: pnpm seed:demo -- --target local
+      - run: |
+          supabase functions serve --env-file .env.local > /tmp/functions.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:54321/functions/v1/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/functions.log
+          exit 1
       - run: pnpm --filter @gateops/web exec playwright install --with-deps
       - run: pnpm test:e2e
 

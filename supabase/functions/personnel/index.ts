@@ -12,7 +12,7 @@ import {
   validateUsername,
 } from "../_shared/validation.ts";
 import { hashPassword } from "../_shared/password.ts";
-import { callRpc } from "../_shared/db.ts";
+import { callRpc, checkDb } from "../_shared/db.ts";
 
 interface PersonRow {
   id: string;
@@ -42,9 +42,10 @@ async function list(
     query = query.or(`nama.ilike.%${s}%,nrp.ilike.%${s}%,username.ilike.%${s}%`);
   }
   const from = (page - 1) * pageSize;
-  const { data, count } = await query
+  const { data, count, error } = await query
     .order("nama", { ascending: true })
     .range(from, from + pageSize - 1);
+  checkDb(error);
   return paginated({
     data: (data ?? []) as unknown as PersonRow[],
     page,
@@ -57,14 +58,32 @@ async function getOne(
   ctx: NonNullable<ReturnType<typeof requireCtx>>,
   id: string,
 ): Promise<Response> {
-  const { data } = await ctx.supabase
+  const { data, error } = await ctx.supabase
     .from("accounts")
     .select("id, nama, nrp, pangkat, jabatan, username, status, created_at")
     .eq("id", id)
     .eq("role", "PERSONEL")
     .maybeSingle();
+  checkDb(error);
   if (!data) throw new ApiError("NOT_FOUND");
-  return success(data);
+  const { data: active, error: activeError } = await ctx.supabase
+    .from("activities")
+    .select("id")
+    .eq("personnel_account_id", id)
+    .eq("status", "AKTIF")
+    .maybeSingle();
+  checkDb(activeError);
+  const { count: persitCount, error: persitError } = await ctx.supabase
+    .from("persit_links")
+    .select("persit_account_id", { count: "exact", head: true })
+    .eq("personnel_account_id", id)
+    .eq("status", "DISETUJUI");
+  checkDb(persitError);
+  return success({
+    ...data,
+    presence: active ? "DI LUAR" : "DI DALAM",
+    persitCount: persitCount ?? 0,
+  });
 }
 
 async function create(

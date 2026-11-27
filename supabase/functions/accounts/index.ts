@@ -12,7 +12,7 @@ import {
   validateUsername,
 } from "../_shared/validation.ts";
 import { generateTempPassword, hashPassword } from "../_shared/password.ts";
-import { callRpc, serviceClient } from "../_shared/db.ts";
+import { callRpc, checkDb, serviceClient } from "../_shared/db.ts";
 
 async function list(
   req: Request,
@@ -33,9 +33,10 @@ async function list(
     query = query.or(`nama.ilike.%${s}%,username.ilike.%${s}%,nrp.ilike.%${s}%`);
   }
   const from = (page - 1) * pageSize;
-  const { data, count } = await query
+  const { data, count, error } = await query
     .order("created_at", { ascending: false })
     .range(from, from + pageSize - 1);
+  checkDb(error);
   return paginated({ data: data ?? [], page, pageSize, total: count ?? 0 });
 }
 

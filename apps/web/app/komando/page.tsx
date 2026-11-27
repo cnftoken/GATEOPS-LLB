@@ -104,7 +104,9 @@ function KomandoContent() {
               <li key={r.id} className="flex items-center justify-between py-3 text-[15px]">
                 <div>
                   <p className="font-medium">{r.name}</p>
-                  <p className="text-[13px] text-ink-2">NRP {r.nrp}</p>
+                  <p className="text-[13px] text-ink-2">
+                    NRP {r.nrp} · {r.gate ?? "—"}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-[13px] font-medium text-ink">{r.type}</p>

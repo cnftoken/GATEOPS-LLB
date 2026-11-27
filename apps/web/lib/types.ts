@@ -22,6 +22,7 @@ export interface KomandoData {
     id: string;
     name: string;
     nrp: string;
+    gate: string | null;
     at: string;
     type: "KELUAR" | "KEMBALI";
     status: string;

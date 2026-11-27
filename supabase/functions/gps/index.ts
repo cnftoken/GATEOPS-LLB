@@ -4,6 +4,7 @@ import { success } from "../_shared/response.ts";
 import { ApiError } from "../_shared/errors.ts";
 import { asString, readJson } from "../_shared/http.ts";
 import { computeGpsStatus, type GpsRow } from "../_shared/gps.ts";
+import { checkDb } from "../_shared/db.ts";
 import { callRpc } from "../_shared/db.ts";
 
 interface ActiveRow {
@@ -53,21 +54,23 @@ async function report(
 
 async function list(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promise<Response> {
   const now = Date.now();
-  const { data: active } = await ctx.supabase
+  const { data: active, error: activeError } = await ctx.supabase
     .from("activities")
     .select(
       "personnel_account_id, exit_at, personnel:accounts!activities_personnel_account_id_fkey(nama, nrp, pangkat, jabatan), exit_gate:gates!activities_exit_gate_id_fkey(name)",
     )
     .eq("status", "AKTIF");
+  checkDb(activeError);
   const rows = (active ?? []) as unknown as ActiveRow[];
   const ids = rows.map((r) => r.personnel_account_id);
 
   const gpsMap = new Map<string, GpsRow>();
   if (ids.length > 0) {
-    const { data: gps } = await ctx.supabase
+    const { data: gps, error: gpsError } = await ctx.supabase
       .from("gps_locations")
       .select("personnel_account_id, latitude, longitude, permission_state, gps_updated_at")
       .in("personnel_account_id", ids);
+    checkDb(gpsError);
     for (const g of (gps ?? []) as unknown as Array<GpsRow & { personnel_account_id: string }>) {
       gpsMap.set(g.personnel_account_id, g);
     }

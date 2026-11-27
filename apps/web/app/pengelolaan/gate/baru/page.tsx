@@ -6,18 +6,7 @@ import { AppShell } from "@/components/shell";
 import { apiMutate, ApiError } from "@/lib/api";
 import { messageForCode } from "@/lib/messages";
 import { Button, Card, Input, PageHeader } from "@/components/ui";
-
-function TokenCard({ token }: { token: string }) {
-  return (
-    <Card className="mt-4 max-w-lg border-accent/40">
-      <p className="text-[15px] font-semibold">Token QR dibuat</p>
-      <p className="mt-1 text-[13px] text-ink-2">
-        Token mentah hanya ditampilkan satu kali. Salin sekarang.
-      </p>
-      <code className="mt-2 block break-all rounded-control bg-app p-3 text-[13px]">{token}</code>
-    </Card>
-  );
-}
+import { QrTokenCard } from "@/components/qr-token";
 
 function BaruContent() {
   const router = useRouter();
@@ -77,7 +66,7 @@ function BaruContent() {
           </Button>
         </form>
       </Card>
-      {token && <TokenCard token={token} />}
+      {token && <QrTokenCard token={token} />}
       {token && (
         <div className="mt-4">
           <Button variant="secondary" onClick={() => router.push("/pengelolaan/gate")}>

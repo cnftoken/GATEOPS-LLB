@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/shell";
 import { apiList, apiMutate, ApiError } from "@/lib/api";
+import { ROLE_LABEL, type Role } from "@/lib/session";
 import { messageForCode } from "@/lib/messages";
 import {
   ACCOUNT_TONE,
@@ -13,7 +14,9 @@ import {
   ConfirmDialog,
   EmptyState,
   ErrorState,
+  Input,
   PageHeader,
+  Pagination,
   Skeleton,
 } from "@/components/ui";
 
@@ -33,11 +36,49 @@ function AkunContent() {
   const [confirmReset, setConfirmReset] = useState<string | null>(null);
   const [temp, setTemp] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [form, setForm] = useState<{
+    id?: string;
+    role: string;
+    nrp: string;
+    nama: string;
+    pangkat: string;
+    jabatan: string;
+    username: string;
+    password: string;
+  } | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["accounts", roleFilter],
+    queryKey: ["accounts", roleFilter, page],
     queryFn: () =>
-      apiList<AccountRow>(`accounts?page=1&pageSize=25${roleFilter ? `&role=${roleFilter}` : ""}`),
+      apiList<AccountRow>(
+        `accounts?page=${page}&pageSize=25${roleFilter ? `&role=${roleFilter}` : ""}`,
+      ),
+  });
+
+  const save = useMutation({
+    mutationFn: (v: NonNullable<typeof form>) =>
+      v.id
+        ? apiMutate(`accounts/${v.id}`, "PATCH", {
+            nama: v.nama,
+            username: v.username,
+            ...(v.role === "KOMANDAN" ? { pangkat: v.pangkat, jabatan: v.jabatan } : {}),
+          })
+        : apiMutate("accounts", "POST", {
+            role: v.role,
+            nrp: v.nrp,
+            nama: v.nama,
+            pangkat: v.pangkat,
+            jabatan: v.jabatan,
+            username: v.username,
+            password: v.password,
+          }),
+    onSuccess: () => {
+      setForm(null);
+      qc.invalidateQueries({ queryKey: ["accounts"] });
+    },
+    onError: (err) =>
+      setError(err instanceof ApiError ? err.message : messageForCode("INTERNAL_ERROR")),
   });
 
   const setStatus = useMutation({
@@ -67,7 +108,27 @@ function AkunContent() {
 
   return (
     <>
-      <PageHeader title="Pengelolaan Akun" description="Kelola akun Super Admin dan Komandan." />
+      <PageHeader
+        title="Pengelolaan Akun"
+        description="Kelola akun Super Admin dan Komandan."
+        actions={
+          <Button
+            onClick={() =>
+              setForm({
+                role: "KOMANDAN",
+                nrp: "",
+                nama: "",
+                pangkat: "",
+                jabatan: "",
+                username: "",
+                password: "",
+              })
+            }
+          >
+            Buat Akun
+          </Button>
+        }
+      />
       {error && (
         <p role="alert" className="mb-3 text-[13px] text-danger">
           {error}
@@ -81,6 +142,122 @@ function AkunContent() {
           <Button variant="secondary" className="mt-3" onClick={() => setTemp(null)}>
             Tutup
           </Button>
+        </Card>
+      )}
+      {form && (
+        <Card className="mb-4 max-w-2xl">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setError(null);
+              save.mutate(form);
+            }}
+          >
+            <div>
+              <label htmlFor="role" className="mb-1 block text-[13px] font-medium text-ink-2">
+                Role
+              </label>
+              <select
+                id="role"
+                value={form.role}
+                disabled={Boolean(form.id)}
+                onChange={(e) => setForm({ ...form, role: e.target.value })}
+                className="h-11 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/25"
+              >
+                <option value="SUPER_ADMIN">Super Admin</option>
+                <option value="KOMANDAN">Komandan</option>
+              </select>
+            </div>
+            {form.role === "KOMANDAN" && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label htmlFor="nrp" className="mb-1 block text-[13px] font-medium text-ink-2">
+                    NRP
+                  </label>
+                  <Input
+                    id="nrp"
+                    value={form.nrp}
+                    disabled={Boolean(form.id)}
+                    onChange={(e) => setForm({ ...form, nrp: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="pangkat"
+                    className="mb-1 block text-[13px] font-medium text-ink-2"
+                  >
+                    Pangkat
+                  </label>
+                  <Input
+                    id="pangkat"
+                    value={form.pangkat}
+                    onChange={(e) => setForm({ ...form, pangkat: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="jabatan"
+                    className="mb-1 block text-[13px] font-medium text-ink-2"
+                  >
+                    Jabatan
+                  </label>
+                  <Input
+                    id="jabatan"
+                    value={form.jabatan}
+                    onChange={(e) => setForm({ ...form, jabatan: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+            )}
+            <div>
+              <label htmlFor="nama" className="mb-1 block text-[13px] font-medium text-ink-2">
+                Nama
+              </label>
+              <Input
+                id="nama"
+                value={form.nama}
+                onChange={(e) => setForm({ ...form, nama: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="username" className="mb-1 block text-[13px] font-medium text-ink-2">
+                Username
+              </label>
+              <Input
+                id="username"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                required
+              />
+            </div>
+            {!form.id && (
+              <div>
+                <label htmlFor="password" className="mb-1 block text-[13px] font-medium text-ink-2">
+                  Password
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button type="submit" loading={save.isPending}>
+                Simpan
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => setForm(null)}>
+                Batal
+              </Button>
+            </div>
+          </form>
         </Card>
       )}
       <div className="mb-4">
@@ -111,7 +288,7 @@ function AkunContent() {
                     {a.nama} <span className="text-ink-3">· @{a.username}</span>
                   </p>
                   <p className="text-[13px] text-ink-2">
-                    {a.role === "SUPER_ADMIN" ? "Super Admin" : "Komandan"}
+                    {ROLE_LABEL[a.role as Role] ?? a.role}
                     {a.nrp ? ` · NRP ${a.nrp}` : ""}
                   </p>
                 </div>
@@ -128,6 +305,23 @@ function AkunContent() {
                   >
                     {a.status === "AKTIF" ? "Nonaktifkan" : "Aktifkan"}
                   </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      setForm({
+                        id: a.id,
+                        role: a.role,
+                        nrp: a.nrp ?? "",
+                        nama: a.nama,
+                        pangkat: "",
+                        jabatan: "",
+                        username: a.username,
+                        password: "",
+                      })
+                    }
+                  >
+                    Ubah
+                  </Button>
                   <Button variant="secondary" onClick={() => setConfirmReset(a.id)}>
                     Reset Password
                   </Button>
@@ -136,6 +330,12 @@ function AkunContent() {
             ))}
           </ul>
         )}
+        <Pagination
+          page={page}
+          total={data?.total ?? 0}
+          pageSize={data?.pageSize ?? 25}
+          onPage={setPage}
+        />
       </Card>
 
       <ConfirmDialog

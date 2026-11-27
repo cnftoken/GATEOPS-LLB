@@ -15,7 +15,7 @@
     "semiColons": true
   },
   "tasks": {
-    "check": "deno check functions",
-    "test": "deno test --allow-all functions"
+    "check": "deno check .",
+    "test": "deno test --allow-all ."
   }
 }

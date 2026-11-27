@@ -95,6 +95,15 @@ async function main(): Promise<void> {
   const gateId = gateBody.data?.id;
   assert.ok(gateToken && gateId, "token/id gate tidak ada");
 
+  // P1 gate PATCH tidak boleh default AKTIF
+  const noStatus = await apiFetch(
+    `gates/${gateId}`,
+    "PATCH",
+    { name: "Gate Integrasi", location: "Lokasi" },
+    saToken,
+  );
+  assert.equal(noStatus.status, 400, "PATCH gate tanpa status harus ditolak");
+
   // S-04 keluar
   const out = await apiFetch(
     "transactions/scan",
@@ -262,6 +271,30 @@ async function main(): Promise<void> {
   assert.ok(Array.isArray(historyBody.data), "data riwayat harus array");
   assert.equal(historyBody.page, 1, "page harus 1");
   assert.equal(historyBody.pageSize, 5, "pageSize harus 5");
+
+  // S-16 filter nama/NRP/gate/tujuan
+  for (const filter of [
+    `name=${encodeURIComponent("Personel")}`,
+    `nrp=${encodeURIComponent(detailNrp as string)}`,
+    `gate=${gateId}`,
+    `tujuan=${encodeURIComponent("Rapat")}`,
+  ]) {
+    const filtered = await apiFetch(
+      `activities?page=1&pageSize=5&${filter}`,
+      "GET",
+      undefined,
+      saToken,
+    );
+    assert.equal(filtered.status, 200, `filter ${filter} gagal: ${filtered.status}`);
+    assert.ok(
+      ((filtered.json as { data?: unknown[] }).data ?? []).length > 0,
+      `filter ${filter} tidak mengembalikan data`,
+    );
+  }
+
+  // S-16 periode laporan wajib
+  const noPeriod = await apiFetch("activities/report", "GET", undefined, saToken);
+  assert.equal(noPeriod.status, 400, "periode laporan wajib");
 
   // S-16 laporan melebihi 31 hari ditolak
   const tooWide = await apiFetch(

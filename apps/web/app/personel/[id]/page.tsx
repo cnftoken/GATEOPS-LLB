@@ -26,6 +26,8 @@ interface PersonDetail {
   jabatan: string;
   username: string;
   status: string;
+  presence: string;
+  persitCount: number;
 }
 
 function DetailContent({ id }: { id: string }) {
@@ -108,7 +110,19 @@ function DetailContent({ id }: { id: string }) {
       <ConfirmDialog
         open={confirm}
         title="Hapus personel?"
-        description="Personel akan dihapus permanen. Tindakan ini tidak dapat dibatalkan."
+        description={
+          p.presence === "DI LUAR"
+            ? `Personel sedang DI LUAR. Aktivitas aktif dan lokasi GPS terakhir akan ikut dihapus.${
+                p.persitCount > 0
+                  ? ` ${p.persitCount} akun Persit terhubung juga akan dihapus.`
+                  : ""
+              }`
+            : `Personel akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.${
+                p.persitCount > 0
+                  ? ` ${p.persitCount} akun Persit terhubung juga akan dihapus.`
+                  : ""
+              }`
+        }
         confirmLabel="Hapus"
         danger
         onConfirm={() => del.mutate()}

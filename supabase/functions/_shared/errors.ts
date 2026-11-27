@@ -27,6 +27,7 @@ export type ErrorCode = keyof typeof ERROR_STATUS;
 // Pemetaan pesan error RPC (migrasi) -> kode API (PRD 22.4).
 const RPC_CODE_MAP: Readonly<Record<string, ErrorCode>> = {
   USERNAME_ALREADY_USED: "CONFLICT",
+  CONFLICT: "CONFLICT",
   NRP_ALREADY_USED: "CONFLICT",
   ACCOUNT_NOT_FOUND: "NOT_FOUND",
   GATE_NOT_FOUND: "NOT_FOUND",

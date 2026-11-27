@@ -5,7 +5,7 @@ import { ApiError } from "../_shared/errors.ts";
 import { asString, readJson } from "../_shared/http.ts";
 import { constantTimeEqual } from "../_shared/internal.ts";
 import { hashToken } from "../_shared/sessions.ts";
-import { callRpc } from "../_shared/db.ts";
+import { callRpc, checkDb } from "../_shared/db.ts";
 import { MESSAGES } from "../_shared/messages.ts";
 
 interface AttendanceResult {
@@ -25,11 +25,12 @@ async function scan(
   if (!token) throw new ApiError("INVALID_QR", MESSAGES.INVALID_QR);
 
   const hash = await hashToken(token);
-  const { data: gate } = await ctx.supabase
+  const { data: gate, error: gateError } = await ctx.supabase
     .from("gates")
     .select("id, name, qr_token_hash")
     .eq("qr_token_hash", hash)
     .maybeSingle();
+  checkDb(gateError);
   if (!gate || !constantTimeEqual((gate as { qr_token_hash: string }).qr_token_hash, hash)) {
     throw new ApiError("INVALID_QR", MESSAGES.INVALID_QR);
   }

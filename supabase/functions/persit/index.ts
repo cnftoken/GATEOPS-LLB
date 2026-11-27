@@ -1,6 +1,7 @@
 // Endpoint persit (PRD 15, 22.5).
 import { handle, fromRpcError, requireCtx } from "../_shared/handler.ts";
 import { paginated, success } from "../_shared/response.ts";
+import { checkDb } from "../_shared/db.ts";
 import { ApiError } from "../_shared/errors.ts";
 import { asString, parsePagination, readJson, segments } from "../_shared/http.ts";
 import {
@@ -41,7 +42,7 @@ async function requests(
   const { page, pageSize } = parsePagination(req.url);
   const status = new URL(req.url).searchParams.get("status") ?? "MENUNGGU";
   const from = (page - 1) * pageSize;
-  const { data, count } = await ctx.supabase
+  const { data, count, error } = await ctx.supabase
     .from("persit_links")
     .select(
       "persit_account_id, requested_nrp, status, created_at, persit:accounts!persit_links_persit_account_id_fkey(nama, username)",
@@ -50,6 +51,7 @@ async function requests(
     .eq("status", status)
     .order("created_at", { ascending: true })
     .range(from, from + pageSize - 1);
+  checkDb(error);
   return paginated({ data: data ?? [], page, pageSize, total: count ?? 0 });
 }
 

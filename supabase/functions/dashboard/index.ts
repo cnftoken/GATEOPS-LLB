@@ -2,6 +2,7 @@
 import { handle, requireCtx } from "../_shared/handler.ts";
 import { success } from "../_shared/response.ts";
 import { ApiError } from "../_shared/errors.ts";
+import { checkDb } from "../_shared/db.ts";
 import { computeGpsStatus, type GpsRow } from "../_shared/gps.ts";
 
 interface PersonnelLite {
@@ -29,17 +30,19 @@ async function komando(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promise
   const supabase = ctx.supabase;
   const now = Date.now();
 
-  const { count: total } = await supabase
+  const { count: total, error: totalError } = await supabase
     .from("accounts")
     .select("id", { count: "exact", head: true })
     .eq("role", "PERSONEL");
+  checkDb(totalError);
 
-  const { data: active } = await supabase
+  const { data: active, error: activeError } = await supabase
     .from("activities")
     .select(
       "id, personnel_account_id, exit_at, tujuan, keperluan, personnel:accounts!activities_personnel_account_id_fkey(nama, nrp, pangkat, jabatan), exit_gate:gates!activities_exit_gate_id_fkey(name)",
     )
     .eq("status", "AKTIF");
+  checkDb(activeError);
   const activeRows = (active ?? []) as unknown as ActivityRow[];
 
   const personnelIds = activeRows
@@ -48,10 +51,11 @@ async function komando(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promise
 
   const gpsMap = new Map<string, GpsRow>();
   if (personnelIds.length > 0) {
-    const { data: gps } = await supabase
+    const { data: gps, error: gpsError } = await supabase
       .from("gps_locations")
       .select("personnel_account_id, latitude, longitude, permission_state, gps_updated_at")
       .in("personnel_account_id", personnelIds);
+    checkDb(gpsError);
     for (const g of (gps ?? []) as unknown as Array<GpsRow & { personnel_account_id: string }>) {
       gpsMap.set(g.personnel_account_id, g);
     }
@@ -76,57 +80,78 @@ async function komando(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promise
     };
   });
 
-  const { data: recent } = await supabase
+  const { data: recent, error: recentError } = await supabase
     .from("activities")
     .select(
-      "id, exit_at, return_at, status, personnel:accounts!activities_personnel_account_id_fkey(nama, nrp), exit_gate:gates!activities_exit_gate_id_fkey(name)",
+      "id, exit_at, return_at, status, personnel:accounts!activities_personnel_account_id_fkey(nama, nrp), exit_gate:gates!activities_exit_gate_id_fkey(name), return_gate:gates!activities_return_gate_id_fkey(name)",
     )
     .order("exit_at", { ascending: false })
-    .limit(10);
+    .limit(50);
+  checkDb(recentError);
   const recentRows = (recent ?? []) as unknown as ActivityRow[];
+  // PRD 12.1: gabungan peristiwa keluar dan kembali, 10 terbaru.
+  const events = recentRows
+    .flatMap((r) => {
+      const base = { name: r.personnel?.nama, nrp: r.personnel?.nrp, status: r.status };
+      const keluar = {
+        id: `${r.id}-exit`,
+        ...base,
+        gate: r.exit_gate?.name,
+        at: r.exit_at,
+        type: "KELUAR",
+      };
+      if (!r.return_at) return [keluar];
+      return [
+        keluar,
+        {
+          id: `${r.id}-return`,
+          ...base,
+          gate: r.return_gate?.name,
+          at: r.return_at,
+          type: "KEMBALI",
+        },
+      ];
+    })
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+    .slice(0, 10);
 
   return success({
     stats: { total: total ?? 0, inside: (total ?? 0) - outside.length, outside: outside.length },
     outside,
-    recent: recentRows.map((r) => ({
-      id: r.id,
-      name: r.personnel?.nama,
-      nrp: r.personnel?.nrp,
-      gate: r.exit_gate?.name,
-      at: r.return_at ?? r.exit_at,
-      type: r.status === "AKTIF" ? "KELUAR" : "KEMBALI",
-      status: r.status,
-    })),
+    recent: events,
   });
 }
 
 async function beranda(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promise<Response> {
   const supabase = ctx.supabase;
   const pid = ctx.account.id;
-  const { data: active } = await supabase
+  const { data: active, error: activeError } = await supabase
     .from("activities")
     .select("id, exit_at, tujuan, keperluan, exit_gate:gates!activities_exit_gate_id_fkey(name)")
     .eq("personnel_account_id", pid)
     .eq("status", "AKTIF")
     .maybeSingle();
+  checkDb(activeError);
   const a = active as unknown as ActivityRow | null;
 
   let gps: GpsRow | null = null;
   if (a) {
-    const { data: g } = await supabase
+    const { data: g, error: gError } = await supabase
       .from("gps_locations")
       .select("latitude, permission_state, gps_updated_at")
       .eq("personnel_account_id", pid)
       .maybeSingle();
+    checkDb(gError);
     gps = (g as unknown as GpsRow) ?? null;
   }
 
-  const { data: recent } = await supabase
+  const { data: recent, error: recentError } = await supabase
     .from("activities")
     .select("id, exit_at, return_at, status, exit_gate:gates!activities_exit_gate_id_fkey(name)")
     .eq("personnel_account_id", pid)
     .order("exit_at", { ascending: false })
     .limit(3);
+  checkDb(recentError);
   const recentRows = (recent ?? []) as unknown as ActivityRow[];
 
   return success({
@@ -153,11 +178,12 @@ async function beranda(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promise
 
 async function keluarga(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promise<Response> {
   const supabase = ctx.supabase;
-  const { data: link } = await supabase
+  const { data: link, error: linkError } = await supabase
     .from("persit_links")
     .select("status, personnel_account_id")
     .eq("persit_account_id", ctx.account.id)
     .maybeSingle();
+  checkDb(linkError);
   const l = link as { status: string; personnel_account_id: string | null } | null;
   if (!l) throw new ApiError("NOT_FOUND");
 
@@ -174,17 +200,19 @@ async function keluarga(ctx: NonNullable<ReturnType<typeof requireCtx>>): Promis
     });
   }
 
-  const { data: p } = await supabase
+  const { data: p, error: pError } = await supabase
     .from("accounts")
     .select("nama, nrp, pangkat, jabatan")
     .eq("id", l.personnel_account_id)
     .single();
+  checkDb(pError);
   const person = p as PersonnelLite;
-  const { count } = await supabase
+  const { count, error: countError } = await supabase
     .from("activities")
     .select("id", { count: "exact", head: true })
     .eq("personnel_account_id", l.personnel_account_id)
     .eq("status", "AKTIF");
+  checkDb(countError);
   return success({
     status: "DISETUJUI",
     personnel: {

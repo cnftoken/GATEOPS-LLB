@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AppShell, useSession } from "@/components/shell";
-import { apiGet, ApiError } from "@/lib/api";
+import { apiGet, apiList, ApiError } from "@/lib/api";
 import { ROLE_LABEL } from "@/lib/session";
 import type { KomandoData } from "@/lib/types";
 import { generateReportPdf, reportFileName, type ReportRow } from "@/lib/pdf";
@@ -24,7 +25,13 @@ function LaporanContent() {
   const [end, setEnd] = useState("");
   const [name, setName] = useState("");
   const [nrp, setNrp] = useState("");
+  const [gate, setGate] = useState("");
+  const [tujuan, setTujuan] = useState("");
   const [status, setStatus] = useState("");
+  const { data: gates } = useQuery({
+    queryKey: ["gates"],
+    queryFn: () => apiList<{ id: string; name: string }>("gates?page=1&pageSize=100"),
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +49,8 @@ function LaporanContent() {
       });
       if (name) params.set("name", name);
       if (nrp) params.set("nrp", nrp);
+      if (gate) params.set("gate", gate);
+      if (tujuan) params.set("tujuan", tujuan);
       if (status) params.set("status", status);
 
       const [report, komando] = await Promise.all([
@@ -124,6 +133,36 @@ function LaporanContent() {
               onChange={(e) => setNrp(e.target.value)}
               placeholder="Filter NRP"
               aria-label="Filter NRP"
+            />
+          </div>
+          <div>
+            <label htmlFor="gate" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Gate
+            </label>
+            <select
+              id="gate"
+              value={gate}
+              onChange={(e) => setGate(e.target.value)}
+              className="h-11 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/25"
+            >
+              <option value="">Semua gate</option>
+              {(gates?.data ?? []).map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="tujuan" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Tujuan
+            </label>
+            <Input
+              id="tujuan"
+              value={tujuan}
+              onChange={(e) => setTujuan(e.target.value)}
+              placeholder="Filter tujuan"
+              aria-label="Filter tujuan"
             />
           </div>
           <div className="sm:col-span-2">

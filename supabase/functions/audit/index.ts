@@ -2,6 +2,7 @@
 import { handle, requireCtx } from "../_shared/handler.ts";
 import { paginated } from "../_shared/response.ts";
 import { parsePagination } from "../_shared/http.ts";
+import { checkDb } from "../_shared/db.ts";
 
 interface AuditRow {
   id: number;
@@ -35,9 +36,10 @@ async function list(
   if (username) query = query.ilike("actor_username", `%${username}%`);
   if (action) query = query.eq("action", action);
   const start = (page - 1) * pageSize;
-  const { data, count } = await query
+  const { data, count, error } = await query
     .order("occurred_at", { ascending: false })
     .range(start, start + pageSize - 1);
+  checkDb(error);
   return paginated({
     data: (data ?? []) as unknown as AuditRow[],
     page,

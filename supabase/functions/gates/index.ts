@@ -5,7 +5,7 @@ import { ApiError } from "../_shared/errors.ts";
 import { asString, parsePagination, readJson, segments } from "../_shared/http.ts";
 import { validateGateLocation, validateGateName } from "../_shared/validation.ts";
 import { generateSessionToken, hashToken } from "../_shared/sessions.ts";
-import { callRpc } from "../_shared/db.ts";
+import { callRpc, checkDb } from "../_shared/db.ts";
 
 async function list(
   req: Request,
@@ -13,11 +13,12 @@ async function list(
 ): Promise<Response> {
   const { page, pageSize } = parsePagination(req.url);
   const from = (page - 1) * pageSize;
-  const { data, count } = await ctx.supabase
+  const { data, count, error } = await ctx.supabase
     .from("gates")
     .select("id, name, location, status, qr_regenerated_at, created_at", { count: "exact" })
     .order("created_at", { ascending: false })
     .range(from, from + pageSize - 1);
+  checkDb(error);
   return paginated({ data: data ?? [], page, pageSize, total: count ?? 0 });
 }
 
@@ -25,11 +26,12 @@ async function getOne(
   ctx: NonNullable<ReturnType<typeof requireCtx>>,
   id: string,
 ): Promise<Response> {
-  const { data } = await ctx.supabase
+  const { data, error } = await ctx.supabase
     .from("gates")
     .select("id, name, location, status, qr_regenerated_at, created_at")
     .eq("id", id)
     .maybeSingle();
+  checkDb(error);
   if (!data) throw new ApiError("NOT_FOUND");
   return success(data);
 }
@@ -69,7 +71,7 @@ async function patch(
   const body = await readJson(req);
   const name = validateGateName(asString(body.name) ?? "");
   const location = validateGateLocation(asString(body.location) ?? "");
-  const status = asString(body.status) ?? "AKTIF";
+  const status = asString(body.status);
   if (!name.ok || !location.ok || (status !== "AKTIF" && status !== "NONAKTIF"))
     throw new ApiError("VALIDATION_FAILED");
   await callRpc(

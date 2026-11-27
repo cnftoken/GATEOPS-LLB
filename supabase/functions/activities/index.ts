@@ -3,6 +3,7 @@ import { handle, requireCtx } from "../_shared/handler.ts";
 import { paginated, success } from "../_shared/response.ts";
 import { ApiError } from "../_shared/errors.ts";
 import { parsePagination, safeFilter, segments } from "../_shared/http.ts";
+import { checkDb } from "../_shared/db.ts";
 
 const SELECT =
   "id, exit_at, return_at, status, tujuan, keperluan, duration_seconds, personnel:accounts!activities_personnel_account_id_fkey(nama, nrp), exit_gate:gates!activities_exit_gate_id_fkey(name), return_gate:gates!activities_return_gate_id_fkey(name)";
@@ -41,7 +42,8 @@ function applyFilters(
     eq: (c: string, v: string) => unknown;
     gte: (c: string, v: string) => unknown;
     lte: (c: string, v: string) => unknown;
-    or: (f: string) => unknown;
+    ilike: (c: string, v: string) => unknown;
+    or: (f: string, opts?: { referencedTable?: string }) => unknown;
   },
   params: URLSearchParams,
 ): void {
@@ -50,12 +52,18 @@ function applyFilters(
   const name = params.get("name")?.trim();
   const nrp = params.get("nrp")?.trim();
   const tujuan = params.get("tujuan")?.trim();
+  const gate = params.get("gate")?.trim();
   const status = params.get("status");
   if (from) query.gte("exit_at", from);
   if (to) query.lte("exit_at", to);
-  if (name) query.or(`personnel.nama.ilike.%${safeFilter(name)}%`);
-  if (nrp) query.or(`personnel.nrp.ilike.%${safeFilter(nrp)}%`);
-  if (tujuan) query.or(`tujuan.ilike.%${safeFilter(tujuan)}%`);
+  if (gate) query.eq("exit_gate_id", gate);
+  if (name || nrp) {
+    const parts: string[] = [];
+    if (name) parts.push(`nama.ilike.%${safeFilter(name)}%`);
+    if (nrp) parts.push(`nrp.ilike.%${safeFilter(nrp)}%`);
+    query.or(parts.join(","), { referencedTable: "accounts" });
+  }
+  if (tujuan) query.ilike("tujuan", `%${safeFilter(tujuan)}%`);
   if (status === "AKTIF" || status === "SELESAI") query.eq("status", status);
 }
 
@@ -68,9 +76,10 @@ async function list(
   const query = ctx.supabase.from("activities").select(SELECT, { count: "exact" });
   applyFilters(query as never, params);
   const from = (page - 1) * pageSize;
-  const { data, count } = await query
+  const { data, count, error } = await query
     .order("exit_at", { ascending: false })
     .range(from, from + pageSize - 1);
+  checkDb(error);
   return paginated({
     data: ((data ?? []) as unknown as Row[]).map(mapRow),
     page,
@@ -86,6 +95,7 @@ async function report(
   const params = new URL(req.url).searchParams;
   const dateFrom = params.get("dateFrom");
   const dateTo = params.get("dateTo");
+  if (!dateFrom || !dateTo) throw new ApiError("VALIDATION_FAILED");
   if (dateFrom && dateTo) {
     const span = Date.parse(dateTo) - Date.parse(dateFrom);
     if (Number.isFinite(span) && span > 31 * 24 * 60 * 60 * 1000) {
@@ -94,7 +104,8 @@ async function report(
   }
   const query = ctx.supabase.from("activities").select(SELECT, { count: "exact" });
   applyFilters(query as never, params);
-  const { data, count } = await query.order("exit_at", { ascending: false }).limit(5001);
+  const { data, count, error } = await query.order("exit_at", { ascending: false }).limit(5001);
+  checkDb(error);
   const rows = (data ?? []) as unknown as Row[];
   // PostgREST dapat membatasi baris (max-rows), jadi batas 5.000 diperiksa dari count exact.
   if ((count ?? 0) > 5000 || rows.length > 5000) throw new ApiError("REPORT_TOO_LARGE");
@@ -107,12 +118,13 @@ async function mine(
 ): Promise<Response> {
   const { page, pageSize } = parsePagination(req.url);
   const from = (page - 1) * pageSize;
-  const { data, count } = await ctx.supabase
+  const { data, count, error } = await ctx.supabase
     .from("activities")
     .select(SELECT, { count: "exact" })
     .eq("personnel_account_id", ctx.account.id)
     .order("exit_at", { ascending: false })
     .range(from, from + pageSize - 1);
+  checkDb(error);
   return paginated({
     data: ((data ?? []) as unknown as Row[]).map(mapRow),
     page,
@@ -125,18 +137,24 @@ async function mineOne(
   ctx: NonNullable<ReturnType<typeof requireCtx>>,
   id: string,
 ): Promise<Response> {
-  const { data } = await ctx.supabase
+  const { data, error } = await ctx.supabase
     .from("activities")
     .select(SELECT)
     .eq("id", id)
     .eq("personnel_account_id", ctx.account.id)
     .maybeSingle();
+  checkDb(error);
   if (!data) throw new ApiError("NOT_FOUND");
   return success(mapRow(data as unknown as Row));
 }
 
 async function one(ctx: NonNullable<ReturnType<typeof requireCtx>>, id: string): Promise<Response> {
-  const { data } = await ctx.supabase.from("activities").select(SELECT).eq("id", id).maybeSingle();
+  const { data, error } = await ctx.supabase
+    .from("activities")
+    .select(SELECT)
+    .eq("id", id)
+    .maybeSingle();
+  checkDb(error);
   if (!data) throw new ApiError("NOT_FOUND");
   return success(mapRow(data as unknown as Row));
 }

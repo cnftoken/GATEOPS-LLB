@@ -5,7 +5,7 @@ import { verifyInternalSecret } from "./internal.ts";
 import { createLogger } from "./logger.ts";
 import { failure } from "./response.ts";
 import { hashToken, validateSession } from "./sessions.ts";
-import { serviceClient } from "./db.ts";
+import { checkDb, serviceClient } from "./db.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { roleAllowed, type Role } from "./roles.ts";
 
@@ -57,13 +57,14 @@ async function authenticate(req: Request): Promise<AuthedContext> {
   if (!token) throw new ApiError("UNAUTHENTICATED");
   const hash = await hashToken(token);
   const supabase = serviceClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("sessions")
     .select(
       "id, revoked_at, expires_at, last_seen_at, account:accounts(id, role, username, nama, status, must_change_password)",
     )
     .eq("token_hash", hash)
     .maybeSingle();
+  checkDb(error);
   const row = data as unknown as SessionWithAccount | null;
   const account = row?.account ?? null;
   const result = validateSession(row, account?.status ?? "", Date.now());

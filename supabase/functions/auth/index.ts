@@ -6,7 +6,7 @@ import { asString, readJson } from "../_shared/http.ts";
 import { normalizeUsername, validatePassword } from "../_shared/validation.ts";
 import { hashPassword, verifyPassword } from "../_shared/password.ts";
 import { generateSessionToken, hashToken, SESSION_TTL_MS } from "../_shared/sessions.ts";
-import { callRpc, serviceClient } from "../_shared/db.ts";
+import { callRpc, checkDb, serviceClient } from "../_shared/db.ts";
 import { MESSAGES } from "../_shared/messages.ts";
 
 // Hash dummy valid agar waktu respons seragam saat username tak ada (PRD 7.3.5).
@@ -28,13 +28,14 @@ async function login(req: Request): Promise<Response> {
 
   const supabase = serviceClient();
   const now = Date.now();
-  const { data: account } = await supabase
+  const { data: account, error: accountError } = await supabase
     .from("accounts")
     .select(
       "id, role, username, password_hash, status, failed_login_count, locked_until, must_change_password",
     )
     .eq("username", normalizeUsername(username))
     .maybeSingle();
+  checkDb(accountError);
 
   if (account?.locked_until && Date.parse(account.locked_until) > now) {
     throw new ApiError("RATE_LIMITED", MESSAGES.LOGIN_LOCKED);
@@ -51,26 +52,29 @@ async function login(req: Request): Promise<Response> {
 
   if (account.status !== "AKTIF") throw new ApiError("ACCOUNT_INACTIVE", MESSAGES.LOGIN_INACTIVE);
 
-  await supabase
+  const { error: resetError } = await supabase
     .from("accounts")
     .update({ failed_login_count: 0, locked_until: null })
     .eq("id", account.id);
+  checkDb(resetError);
 
   const token = generateSessionToken();
-  await supabase.from("sessions").insert({
+  const { error: sessionError } = await supabase.from("sessions").insert({
     account_id: account.id,
     token_hash: await hashToken(token),
     expires_at: new Date(now + SESSION_TTL_MS).toISOString(),
   });
+  checkDb(sessionError);
 
   return success({ token, mustChangePassword: account.must_change_password });
 }
 
 async function logout(ctx: AuthedContext): Promise<Response> {
-  await ctx.supabase
+  const { error: logoutError } = await ctx.supabase
     .from("sessions")
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", ctx.sessionId);
+  checkDb(logoutError);
   return success({ ok: true });
 }
 
@@ -93,11 +97,12 @@ async function changePassword(ctx: AuthedContext, req: Request): Promise<Respons
   if (!np.ok) throw new ApiError("VALIDATION_FAILED");
 
   if (!ctx.account.must_change_password) {
-    const { data } = await ctx.supabase
+    const { data, error } = await ctx.supabase
       .from("accounts")
       .select("password_hash")
       .eq("id", ctx.account.id)
       .single();
+    checkDb(error);
     const ok = await verifyPassword(oldPassword, (data as { password_hash: string }).password_hash);
     if (!ok || oldPassword === newPassword) throw new ApiError("VALIDATION_FAILED");
   }
