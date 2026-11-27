@@ -406,26 +406,26 @@ Rujukan: PRD Bagian 23. Centang bila FR tercakup kode + tes.
 
 Rujukan: PRD 27.2.
 
-- [ ] S-01 — Login sukses/gagal, cookie & atribut, kedaluwarsa & idle timeout (API, E2E)
-- [ ] S-02 — SA buat personel & akun KMD, ubah data, username unik, NRP tetap (API, E2E)
-- [ ] S-03 — Buat gate & QR, token sekali, hash tersimpan, keluar AKTIF (API, E2E)
-- [ ] S-04 — Form Keluar invalid tak buka kamera, valid buka kamera, gagal kamera (E2E)
-- [ ] S-05 — QR invalid pesan & tak ubah status, gate NONAKTIF ditolak (API, E2E)
-- [ ] S-06 — Kembali tercatat, SELESAI, durasi, GPS dihapus (API, E2E)
+- [x] S-01 — Login sukses/gagal, cookie & atribut, kedaluwarsa & idle timeout (API, E2E)
+- [x] S-02 — SA buat personel & akun KMD, ubah data, username unik, NRP tetap (API, E2E)
+- [x] S-03 — Buat gate & QR, token sekali, hash tersimpan, keluar AKTIF (API, E2E)
+- [x] S-04 — Form Keluar invalid tak buka kamera, valid buka kamera, gagal kamera (E2E)
+- [x] S-05 — QR invalid pesan & tak ubah status, gate NONAKTIF ditolak (API, E2E)
+- [x] S-06 — Kembali tercatat, SELESAI, durasi, GPS dihapus (API, E2E)
 - [ ] S-07 — Dua request transaksi, kedua ditolak TRANSACTION_IN_PROGRESS (Integration)
-- [ ] S-08 — Gagal di tengah RPC batalkan seluruh perubahan & audit (Database)
-- [ ] S-09 — Sesi berakhir saat scan menolak transaksi & hentikan kamera (E2E)
+- [x] S-08 — Gagal di tengah RPC batalkan seluruh perubahan & audit (Database)
+- [x] S-09 — Sesi berakhir saat scan menolak transaksi & hentikan kamera (E2E)
 - [ ] S-10 — Koneksi putus saat scan tanpa transaksi & tanpa retry (E2E)
 - [ ] S-11 — Keluar aktifkan tracking, kirim lokasi tiap 30 detik (E2E)
-- [ ] S-12 — Status GPS AKTIF/OFFLINE/TIDAK AKTIF, batas 60 detik, pemulihan, izin dicabut (API, E2E)
-- [ ] S-13 — Hapus personel hapus Persit terverifikasi, sesi, riwayat atomik (Database, API)
-- [ ] S-14 — Reset password sementara, wajib ganti, sesi lain dicabut (API, E2E)
-- [ ] S-15 — Lockout 5 kegagalan, terbuka setelah 15 menit (API)
-- [ ] S-16 — Riwayat filter & paginasi, PDF batas periode & baris (API, E2E)
-- [ ] S-17 — KMD tak akses pengelolaan, Personel tak lihat data lain, Persit tak lihat GPS (API, E2E)
-- [ ] S-18 — Audit tak dapat diubah/dihapus, RLS tolak anon/authenticated (Database)
-- [ ] S-19 — `setup --target local` env kosong berhasil & idempotent (Setup)
-- [ ] S-20 — `release` env local jalankan seluruh urutan & health check (Setup)
+- [x] S-12 — Status GPS AKTIF/OFFLINE/TIDAK AKTIF, batas 60 detik, pemulihan, izin dicabut (API, E2E)
+- [x] S-13 — Hapus personel hapus Persit terverifikasi, sesi, riwayat atomik (Database, API)
+- [x] S-14 — Reset password sementara, wajib ganti, sesi lain dicabut (API, E2E)
+- [x] S-15 — Lockout 5 kegagalan, terbuka setelah 15 menit (API)
+- [~] S-16 — Riwayat filter & paginasi, PDF batas periode & baris (API, E2E)
+- [x] S-17 — KMD tak akses pengelolaan, Personel tak lihat data lain, Persit tak lihat GPS (API, E2E)
+- [x] S-18 — Audit tak dapat diubah/dihapus, RLS tolak anon/authenticated (Database)
+- [x] S-19 — `setup --target local` env kosong berhasil & idempotent (Setup)
+- [~] S-20 — `release` env local jalankan seluruh urutan & health check (Setup)
 
 ---
 
@@ -490,3 +490,4 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-27 | review (Fase 3/5) | PRD 7.3.4, 11.4, 14.2, 22.7, 22.8, AGENTS 8.6.3 | - | `pnpm test:db` 21/21; `deno test _shared` 32/32; `pnpm lint`/`typecheck`/`test`/`build` sukses; `test:e2e` 8/8 | dashboard select `personnel_account_id`; lockout atomik (migrasi 170900 + pgTAP 02); tolak lat/long null; batas 31 hari server; presence "DI LUAR"/"DI DALAM" (PRD 22.7); `lib/limits.ts` + tes paritas; hapus placeholder/dead export |
 | 2026-11-27 | 10.10, FR-01..FR-55 | PRD 26.7, 23 | - | `pnpm lint`/`typecheck`/`test`/`build`/`audit --prod` (0 vuln); `pnpm test:db` 21/21; `integration.check` PASS; `test:e2e` 8/8 | seluruh gerbang CI setara lokal lulus; checklist FR dipetakan ke unit/integration/pgTAP/E2E; 10.13-10.17 tetap menunggu environment production |
 | 2026-11-27 | 5.7 (hardening) | PRD 21.3,21.5,21.8 | - | `pnpm lint`/`typecheck`/`test`/`build` sukses; `test:e2e` 8/8 | target sentuh 44px (h-11), focus-visible global, skip-link + `main`, label/htmlFor + aria-label filter, role alert/status pada error/toast/kamera, alertdialog focus-trap+scroll-lock, bottom-nav ringkas + sheet "Lainnya", grid responsif, reduced-motion tetap |
+| 2026-11-27 | S-01..S-06, S-08, S-09, S-12..S-15, S-17..S-19 | PRD 27.2 | - | `pnpm test:db` 30/30 (3 file); `integration.check` PASS; `test:e2e` 12/12 | integration diperluas (duplikat username, NRP tetap, QR invalid 422, gate NONAKTIF 409, GPS AKTIF, laporan 31 hari, persit 403 GPS, reset temp, lockout 429); pgTAP 03 (rollback audit, delete personel atomik); E2E scenarios (S-04 gating form, S-09 sesi berakhir); redirect AppShell via useEffect |

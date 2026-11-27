@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -97,6 +97,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data, isLoading, isError } = useSession();
+  const me = data?.data;
+
+  useEffect(() => {
+    if (!me) return;
+    if (me.mustChangePassword && pathname !== "/ganti-password") {
+      router.replace("/ganti-password");
+      return;
+    }
+    if (!isAllowed(me.role, pathname) && pathname !== "/ganti-password") {
+      router.replace(homeForRole(me.role));
+    }
+  }, [me, pathname, router]);
 
   if (isLoading) {
     return (
@@ -122,18 +134,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const me = data.data;
-  const items = NAV[me.role];
+  const current = data.data;
+  const items = NAV[current.role];
 
-  if (me.mustChangePassword && pathname !== "/ganti-password") {
-    router.replace("/ganti-password");
-    return null;
-  }
-
-  if (!isAllowed(me.role, pathname) && pathname !== "/ganti-password") {
-    router.replace(homeForRole(me.role));
-    return null;
-  }
+  if (current.mustChangePassword && pathname !== "/ganti-password") return null;
+  if (!isAllowed(current.role, pathname) && pathname !== "/ganti-password") return null;
 
   return (
     <div className="min-h-screen">
@@ -143,7 +148,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         Lewati ke konten
       </a>
-      <Sidebar items={items} pathname={pathname} nama={me.nama} />
+      <Sidebar items={items} pathname={pathname} nama={current.nama} />
       <main id="main" className="md:pl-[260px] md:pr-6 pb-24 md:pb-10 pt-6 md:pt-10">
         <div className="mx-auto max-w-[1200px]">{children}</div>
       </main>
