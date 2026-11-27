@@ -7,8 +7,11 @@ File ini adalah aturan kerja untuk setiap agen (manusia atau AI) yang menulis, m
 ## 0. Hierarki Sumber
 
 1. `PRD.md` adalah sumber kebenaran tunggal untuk produk, perilaku, data, API, dan batasan.
-2. `AGENTS.md` (file ini) adalah aturan cara kerja.
-3. Kode mengikuti keduanya.
+2. `To-dos.md` adalah urutan kerja dan daftar periksa progres pengembangan.
+3. `AGENTS.md` (file ini) adalah aturan cara kerja.
+4. Kode mengikuti ketiganya.
+
+Agen WAJIB membaca `PRD.md` bagian relevan dan `To-dos.md` sebelum menulis kode, lalu WAJIB memperbarui status item terkait di `To-dos.md` (mengubah `[ ]` menjadi `[~]` saat mulai dan `[x]` setelah selesai dengan bukti) serta mengisi tabel Log Perubahan di `To-dos.md` setiap menyelesaikan pekerjaan. Item dilarang ditandai `[x]` tanpa bukti tes atau gerbang yang lulus.
 
 Jika permintaan bertentangan dengan PRD, atau PRD tidak mengatur sesuatu yang dibutuhkan untuk menyelesaikan tugas, agen WAJIB berhenti dan melaporkan kondisi tersebut. Agen DILARANG menebak perilaku, membuat keputusan produk, atau menambahkan `TODO`, `FIXME`, atau `TBD` untuk menunda keputusan.
 
@@ -50,6 +53,7 @@ Pelanggaran terhadap aturan ini membuat perubahan ditolak, sekalipun tes lulus.
 19. Super Admin dan Komandan tidak dapat dihapus. Akun Personel yang sedang DI LUAR tidak dapat dinonaktifkan.
 20. Environment staging DILARANG dibuat. Preview deployment Vercel tidak boleh terhubung ke Supabase production.
 21. DILARANG menjalankan `db push`, `functions deploy`, atau `vercel deploy --prod` ke production di luar `pnpm release` atau `pnpm setup`.
+22. `To-dos.md` WAJIB dijaga tetap sinkron dengan pekerjaan. DILARANG menandai item selesai tanpa bukti, dan DILARANG menyelesaikan pekerjaan tanpa memperbarui `To-dos.md`.
 
 ---
 
@@ -61,11 +65,13 @@ Setiap tugas WAJIB mengikuti langkah berikut:
 2. Identifikasi komponen yang terdampak: UI, BFF, Edge Function, RPC, migrasi, atau script.
 3. Periksa apakah perubahan menyentuh data, audit, akses, atau secret. Jika ya, ikuti Bagian 9 dengan lebih ketat.
 4. Jika PRD tidak mengatur kasus yang ditemui, berhenti dan laporkan (lihat Bagian 13).
-5. Tulis tes terlebih dahulu untuk perilaku yang diubah, minimal tes yang merujuk ID FR atau skenario.
-6. Implementasikan perubahan dengan perubahan sekecil mungkin.
-7. Jalankan gerbang lokal: lint, typecheck, unit, dan integration yang relevan. Jalankan pgTAP jika menyentuh migrasi atau RPC.
-8. Perbarui dokumentasi operasional di `docs/` jika perilaku setup, deployment, atau restore berubah.
-9. Laporkan hasil dengan daftar FR atau skenario yang tercakup dan perintah tes yang dijalankan.
+5. Tandai item terkait di `To-dos.md` sebagai `[~]` sebelum mulai, dan rujuk ID item tersebut.
+6. Tulis tes terlebih dahulu untuk perilaku yang diubah, minimal tes yang merujuk ID FR atau skenario.
+7. Implementasikan perubahan dengan perubahan sekecil mungkin.
+8. Jalankan gerbang lokal: lint, typecheck, unit, dan integration yang relevan. Jalankan pgTAP jika menyentuh migrasi atau RPC.
+9. Perbarui dokumentasi operasional di `docs/` jika perilaku setup, deployment, atau restore berubah.
+10. Tandai item di `To-dos.md` sebagai `[x]` dengan bukti, dan isi tabel Log Perubahan di `To-dos.md`.
+11. Laporkan hasil dengan daftar FR atau skenario yang tercakup dan perintah tes yang dijalankan.
 
 ---
 
@@ -115,7 +121,8 @@ gateops/
 ├── .github/workflows/
 ├── .env.example
 ├── AGENTS.md
-└── PRD.md
+├── PRD.md
+└── To-dos.md
 ```
 
 Aturan lokasi:
@@ -335,7 +342,8 @@ Setiap PR WAJIB memuat:
 4. Catatan migrasi: tabel dan kolom yang berubah, dan strategi expand-contract yang dipakai.
 5. Catatan keamanan: area yang menyentuh data, akses, atau secret.
 6. Untuk perubahan UI: tangkapan layar desktop dan mobile, serta state loading, empty, dan error.
-7. Asumsi yang dibuat agen. Jika ada asumsi produk, PR tidak boleh di-merge sampai Owner menyetujui.
+7. ID item `To-dos.md` yang diselesaikan dan statusnya.
+8. Asumsi yang dibuat agen. Jika ada asumsi produk, PR tidak boleh di-merge sampai Owner menyetujui.
 
 ---
 
@@ -385,4 +393,5 @@ Pekerjaan dianggap selesai jika seluruh butir berikut terpenuhi:
 4. Pesan, batas, dan format sesuai Bagian 8 dan PRD.
 5. Dokumentasi operasional diperbarui bila perlu.
 6. PR memuat seluruh informasi di Bagian 11.2.
-7. Tidak ada `TODO`, `FIXME`, atau `TBD` yang menyangkut perilaku produk.
+7. `To-dos.md` diperbarui dan tabel Log Perubahan terisi dengan bukti.
+8. Tidak ada `TODO`, `FIXME`, atau `TBD` yang menyangkut perilaku produk.
