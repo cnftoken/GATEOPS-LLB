@@ -102,14 +102,17 @@ export function CameraScanner({ paused, onDecode }: Props) {
     <div className="overflow-hidden rounded-card bg-black">
       <div className="relative aspect-[4/3] w-full">
         <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
-        <canvas ref={canvasRef} className="hidden" />
+        <canvas ref={canvasRef} aria-hidden className="hidden" />
         {state === "running" && (
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
             <div className="h-48 w-48 rounded-2xl border-2 border-white/80" />
           </div>
         )}
         {state !== "running" && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-white">
+          <div
+            role={state === "error" ? "alert" : "status"}
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-white"
+          >
             {state === "error" ? (
               <>
                 <p className="text-[15px]">{error ?? MESSAGES.CAMERA_DENIED}</p>
@@ -126,7 +129,7 @@ export function CameraScanner({ paused, onDecode }: Props) {
         )}
       </div>
       {state === "running" && (
-        <div className="bg-black/60 p-3 text-center text-[13px] text-white">
+        <div aria-live="polite" className="bg-black/60 p-3 text-center text-[13px] text-white">
           {slowHint
             ? "QR Code tidak terbaca. Pastikan QR berada di dalam bingkai, lalu coba lagi."
             : MESSAGES.SCAN_HINT}

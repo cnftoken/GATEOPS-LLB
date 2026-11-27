@@ -74,7 +74,11 @@ function VerifikasiContent() {
           </button>
         ))}
       </div>
-      {error && <p className="mb-3 text-[13px] text-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="mb-3 text-[13px] text-danger">
+          {error}
+        </p>
+      )}
       <Card>
         {isLoading ? (
           <Skeleton className="h-40 w-full" />

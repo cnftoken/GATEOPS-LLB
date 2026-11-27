@@ -37,7 +37,7 @@ function KomandoContent() {
     return (
       <>
         <Skeleton className="h-8 w-56" />
-        <div className="mt-6 grid grid-cols-3 gap-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Skeleton className="h-24" />
           <Skeleton className="h-24" />
           <Skeleton className="h-24" />
@@ -60,7 +60,7 @@ function KomandoContent() {
           </Link>
         }
       />
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Stat label="Total Personel" value={d.stats.total} />
         <Stat label="Di Dalam" value={d.stats.inside} />
         <Stat label="Di Luar" value={d.stats.outside} />

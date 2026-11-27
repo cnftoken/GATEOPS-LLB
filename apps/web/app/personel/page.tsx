@@ -54,6 +54,7 @@ function PersonelContent() {
       <div className="mb-4">
         <Input
           placeholder="Cari nama, NRP, atau username"
+          aria-label="Cari personel"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);

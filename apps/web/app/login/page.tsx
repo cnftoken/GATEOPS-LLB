@@ -73,7 +73,11 @@ export default function LoginPage() {
               required
             />
           </div>
-          {error && <p className="text-[13px] text-danger">{error}</p>}
+          {error && (
+            <p role="alert" className="text-[13px] text-danger">
+              {error}
+            </p>
+          )}
           <Button type="submit" loading={loading} className="w-full">
             Masuk
           </Button>

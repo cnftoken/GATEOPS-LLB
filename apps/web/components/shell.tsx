@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import { homeForRole, type Me, type Role } from "@/lib/session";
-import { Skeleton } from "./ui";
+import { Skeleton, Sheet } from "./ui";
 
 interface NavItem {
   href: string;
@@ -111,7 +112,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
         <p className="text-[17px] font-semibold">Sesi berakhir</p>
         <p className="text-[15px] text-ink-2">Silakan masuk kembali.</p>
-        <Link href="/login" className="rounded-control bg-accent px-4 py-2 text-white">
+        <Link
+          href="/login"
+          className="inline-flex h-11 items-center rounded-control bg-accent px-4 text-white focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-accent/30"
+        >
           Ke halaman masuk
         </Link>
       </div>
@@ -133,8 +137,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-control focus:bg-accent focus:px-4 focus:py-2 focus:text-white"
+      >
+        Lewati ke konten
+      </a>
       <Sidebar items={items} pathname={pathname} nama={me.nama} />
-      <main className="md:pl-[260px] md:pr-6 pb-24 md:pb-10 pt-6 md:pt-10">
+      <main id="main" className="md:pl-[260px] md:pr-6 pb-24 md:pb-10 pt-6 md:pt-10">
         <div className="mx-auto max-w-[1200px]">{children}</div>
       </main>
       <BottomNav items={items} pathname={pathname} />
@@ -151,7 +161,7 @@ function Sidebar({ items, pathname, nama }: { items: NavItem[]; pathname: string
         </span>
         <span className="hidden text-[17px] font-semibold lg:inline">GATEOPS</span>
       </div>
-      <nav className="flex-1 space-y-1 px-3 py-2">
+      <nav aria-label="Navigasi utama" className="flex-1 space-y-1 px-3 py-2">
         {items.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
@@ -176,10 +186,27 @@ function Sidebar({ items, pathname, nama }: { items: NavItem[]; pathname: string
   );
 }
 
+function shortLabel(label: string): string {
+  return label
+    .replace("Dashboard ", "")
+    .replace("Data ", "")
+    .replace("GPS Tracking", "GPS")
+    .replace("Riwayat & Laporan", "Riwayat")
+    .replace("Verifikasi ", "")
+    .replace("Gate & QR", "Gate")
+    .replace("Audit Log", "Audit")
+    .replace("Scan QR", "Scan");
+}
+
 function BottomNav({ items, pathname }: { items: NavItem[]; pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const visible = items.length > 5 ? items.slice(0, 4) : items;
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/90 backdrop-blur-xl md:hidden">
-      {items.map((item) => {
+    <nav
+      aria-label="Navigasi bawah"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-surface/90 backdrop-blur-xl md:hidden"
+    >
+      {visible.map((item) => {
         const Icon = item.icon;
         const active = isActive(pathname, item.href);
         return (
@@ -190,10 +217,40 @@ function BottomNav({ items, pathname }: { items: NavItem[]; pathname: string }) 
             className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] ${active ? "text-accent" : "text-ink-3"}`}
           >
             <Icon className="h-5 w-5" aria-hidden />
-            {item.label}
+            <span className="max-w-full truncate px-1">{shortLabel(item.label)}</span>
           </Link>
         );
       })}
+      {items.length > 5 && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex flex-1 flex-col items-center gap-1 py-2 text-[11px] text-ink-3"
+        >
+          <span className="grid h-5 w-5 place-items-center rounded-full border border-current text-[10px]">
+            ⋯
+          </span>
+          Lainnya
+        </button>
+      )}
+      <Sheet open={open} title="Menu" onClose={() => setOpen(false)}>
+        <div className="space-y-1">
+          {items.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className="flex min-h-11 items-center gap-3 rounded-control px-3 text-[15px] text-ink hover:bg-black/5"
+              >
+                <Icon className="h-5 w-5" aria-hidden />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      </Sheet>
     </nav>
   );
 }

@@ -84,7 +84,7 @@ function LaporanContent() {
         description="Buat laporan aktivitas dalam periode tertentu."
       />
       <Card className="max-w-2xl">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="start" className="mb-1 block text-[13px] font-medium text-ink-2">
               Tanggal mulai
@@ -111,6 +111,7 @@ function LaporanContent() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Filter nama"
+              aria-label="Filter nama"
             />
           </div>
           <div>
@@ -122,6 +123,7 @@ function LaporanContent() {
               value={nrp}
               onChange={(e) => setNrp(e.target.value)}
               placeholder="Filter NRP"
+              aria-label="Filter NRP"
             />
           </div>
           <div className="col-span-2">
@@ -132,7 +134,7 @@ function LaporanContent() {
               id="status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="h-10 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:ring-[3px] focus:ring-accent/25"
+              className="h-11 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/25"
             >
               <option value="">Semua status</option>
               <option value="AKTIF">AKTIF</option>
@@ -141,9 +143,13 @@ function LaporanContent() {
           </div>
         </div>
 
-        {tooLong && <p className="mt-3 text-[13px] text-danger">Periode maksimal 31 hari.</p>}
+        {tooLong && (
+          <p role="alert" className="mt-3 text-[13px] text-danger">
+            Periode maksimal 31 hari.
+          </p>
+        )}
         {error && (
-          <p className="mt-3 text-[13px] text-danger">
+          <p role="alert" className="mt-3 text-[13px] text-danger">
             {error}{" "}
             <button className="text-accent underline" onClick={onGenerate}>
               coba lagi

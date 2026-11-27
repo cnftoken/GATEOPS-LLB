@@ -48,6 +48,7 @@ function AuditContent() {
       <div className="mb-4 flex flex-wrap gap-3">
         <Input
           placeholder="Filter aksi"
+          aria-label="Filter aksi"
           value={action}
           onChange={(e) => {
             setAction(e.target.value);
@@ -57,6 +58,7 @@ function AuditContent() {
         />
         <Input
           placeholder="Filter username"
+          aria-label="Filter username"
           value={username}
           onChange={(e) => {
             setUsername(e.target.value);

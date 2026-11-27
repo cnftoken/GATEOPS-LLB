@@ -79,31 +79,44 @@ function DetailContent({ id }: { id: string }) {
         description={g.location}
         actions={<Badge tone={ACCOUNT_TONE[g.status]}>{g.status}</Badge>}
       />
-      {error && <p className="mb-3 text-[13px] text-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="mb-3 text-[13px] text-danger">
+          {error}
+        </p>
+      )}
       <Card className="max-w-lg">
         <form onSubmit={onSave} className="space-y-4">
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Nama</label>
+            <label htmlFor="name" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Nama
+            </label>
             <Input
+              id="name"
               value={f.name}
               onChange={(e) => setForm({ ...f, name: e.target.value })}
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Lokasi</label>
+            <label htmlFor="location" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Lokasi
+            </label>
             <Input
+              id="location"
               value={f.location}
               onChange={(e) => setForm({ ...f, location: e.target.value })}
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Status</label>
+            <label htmlFor="status" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Status
+            </label>
             <select
+              id="status"
               value={f.status}
               onChange={(e) => setForm({ ...f, status: e.target.value })}
-              className="h-10 w-full rounded-control border border-line bg-surface px-3 text-[15px]"
+              className="h-11 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/25"
             >
               <option value="AKTIF">AKTIF</option>
               <option value="NONAKTIF">NONAKTIF</option>

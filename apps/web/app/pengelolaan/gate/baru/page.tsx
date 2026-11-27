@@ -51,14 +51,27 @@ function BaruContent() {
       <Card className="max-w-lg">
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Nama</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            <label htmlFor="name" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Nama
+            </label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Lokasi</label>
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} required />
+            <label htmlFor="location" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Lokasi
+            </label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              required
+            />
           </div>
-          {error && <p className="text-[13px] text-danger">{error}</p>}
+          {error && (
+            <p role="alert" className="text-[13px] text-danger">
+              {error}
+            </p>
+          )}
           <Button type="submit" loading={loading}>
             Buat Gate
           </Button>

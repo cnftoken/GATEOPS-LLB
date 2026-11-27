@@ -62,6 +62,7 @@ function RiwayatContent() {
       <div className="mb-4 flex flex-wrap gap-3">
         <Input
           placeholder="Nama"
+          aria-label="Filter nama"
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -71,6 +72,7 @@ function RiwayatContent() {
         />
         <Input
           placeholder="NRP"
+          aria-label="Filter NRP"
           value={nrp}
           onChange={(e) => {
             setNrp(e.target.value);
@@ -79,12 +81,13 @@ function RiwayatContent() {
           className="max-w-[140px]"
         />
         <select
+          aria-label="Filter status"
           value={status}
           onChange={(e) => {
             setStatus(e.target.value);
             setPage(1);
           }}
-          className="h-10 rounded-control border border-line bg-surface px-3 text-[15px]"
+          className="h-11 rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/25"
         >
           <option value="">Semua status</option>
           <option value="AKTIF">AKTIF</option>

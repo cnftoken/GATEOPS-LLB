@@ -119,7 +119,11 @@ function ScanContent() {
                 placeholder="Keperluan keluar"
               />
             </div>
-            {scanError && <p className="text-[13px] text-danger">{scanError}</p>}
+            {scanError && (
+              <p role="alert" className="text-[13px] text-danger">
+                {scanError}
+              </p>
+            )}
             <Button
               className="w-full"
               disabled={!tujuanValid || !keperluanValid}
@@ -138,7 +142,11 @@ function ScanContent() {
             paused={mutation.isPending}
             onDecode={(token) => mutation.mutate(token)}
           />
-          {scanError && <p className="mt-3 text-[13px] text-danger">{scanError}</p>}
+          {scanError && (
+            <p role="alert" className="mt-3 text-[13px] text-danger">
+              {scanError}
+            </p>
+          )}
         </div>
       )}
 

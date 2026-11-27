@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/shell";
 import { apiGet, apiMutate, ApiError } from "@/lib/api";
 import { messageForCode } from "@/lib/messages";
-import { Button, Card, ErrorState, PageHeader, Skeleton } from "@/components/ui";
+import { Button, Card, ErrorState, Input, PageHeader, Skeleton } from "@/components/ui";
 
 interface PersonDetail {
   id: string;
@@ -58,42 +58,54 @@ function EditContent({ id }: { id: string }) {
       <Card className="max-w-lg">
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Nama</label>
-            <input
+            <label htmlFor="nama" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Nama
+            </label>
+            <Input
+              id="nama"
               value={f.nama}
               onChange={(e) => setForm({ ...f, nama: e.target.value })}
-              className="h-10 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:ring-[3px] focus:ring-accent/25"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Pangkat</label>
-            <input
+            <label htmlFor="pangkat" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Pangkat
+            </label>
+            <Input
+              id="pangkat"
               value={f.pangkat}
               onChange={(e) => setForm({ ...f, pangkat: e.target.value })}
-              className="h-10 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:ring-[3px] focus:ring-accent/25"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Jabatan</label>
-            <input
+            <label htmlFor="jabatan" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Jabatan
+            </label>
+            <Input
+              id="jabatan"
               value={f.jabatan}
               onChange={(e) => setForm({ ...f, jabatan: e.target.value })}
-              className="h-10 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:ring-[3px] focus:ring-accent/25"
               required
             />
           </div>
           <div>
-            <label className="mb-1 block text-[13px] font-medium text-ink-2">Username</label>
-            <input
+            <label htmlFor="username" className="mb-1 block text-[13px] font-medium text-ink-2">
+              Username
+            </label>
+            <Input
+              id="username"
               value={f.username}
               onChange={(e) => setForm({ ...f, username: e.target.value })}
-              className="h-10 w-full rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:ring-[3px] focus:ring-accent/25"
               required
             />
           </div>
-          {error && <p className="text-[13px] text-danger">{error}</p>}
+          {error && (
+            <p role="alert" className="text-[13px] text-danger">
+              {error}
+            </p>
+          )}
           <Button type="submit" loading={loading}>
             Simpan
           </Button>

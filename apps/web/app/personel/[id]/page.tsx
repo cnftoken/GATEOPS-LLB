@@ -70,7 +70,11 @@ function DetailContent({ id }: { id: string }) {
           </>
         }
       />
-      {error && <p className="mb-3 text-[13px] text-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="mb-3 text-[13px] text-danger">
+          {error}
+        </p>
+      )}
       <Card className="max-w-lg">
         <dl className="grid grid-cols-2 gap-4 text-[15px]">
           <div>
