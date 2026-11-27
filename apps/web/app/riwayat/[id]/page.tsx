@@ -33,7 +33,7 @@ function DetailContent({ id }: { id: string }) {
     <>
       <PageHeader title="Detail Aktivitas" description={`${r.name} · ${r.nrp}`} />
       <Card className="max-w-lg">
-        <dl className="grid grid-cols-2 gap-4 text-[15px]">
+        <dl className="grid grid-cols-1 gap-4 text-[15px] sm:grid-cols-2">
           <div>
             <dt className="text-[13px] text-ink-2">Status</dt>
             <dd>
@@ -60,11 +60,11 @@ function DetailContent({ id }: { id: string }) {
             <dt className="text-[13px] text-ink-2">Waktu Kembali</dt>
             <dd>{r.returnAt ? formatDateTime(new Date(r.returnAt)) : "—"}</dd>
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <dt className="text-[13px] text-ink-2">Tujuan</dt>
             <dd>{r.tujuan}</dd>
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <dt className="text-[13px] text-ink-2">Keperluan</dt>
             <dd>{r.keperluan}</dd>
           </div>

@@ -175,6 +175,7 @@ function Sidebar({ items, pathname, nama }: { items: NavItem[]; pathname: string
               key={item.href}
               href={item.href}
               aria-label={item.label}
+              aria-current={active ? "page" : undefined}
               title={item.label}
               className={`flex h-11 items-center gap-3 rounded-control px-3 text-[15px] ${
                 active ? "bg-black/5 font-medium text-accent" : "text-ink-2 hover:bg-black/5"
@@ -219,6 +220,7 @@ function BottomNav({ items, pathname }: { items: NavItem[]; pathname: string }) 
             key={item.href}
             href={item.href}
             aria-label={item.label}
+            aria-current={active ? "page" : undefined}
             className={`flex flex-1 flex-col items-center gap-1 py-2 text-[11px] ${active ? "text-accent" : "text-ink-3"}`}
           >
             <Icon className="h-5 w-5" aria-hidden />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { Inbox } from "lucide-react";
 
 /* Badge status (PRD 21.4). Selalu ada teks. */
 type Tone = "success" | "warning" | "danger" | "accent" | "neutral";
@@ -109,12 +110,21 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return <div aria-hidden className={`animate-pulse rounded-md bg-black/5 ${className}`} />;
 }
 
-export function EmptyState({ title, hint }: { title: string; hint?: string }) {
+export function EmptyState({
+  title,
+  hint,
+  icon: Icon = Inbox,
+}: {
+  title: string;
+  hint?: string;
+  icon?: typeof Inbox;
+}) {
   return (
     <div
       role="status"
-      className="flex flex-col items-center justify-center gap-1 py-12 text-center"
+      className="flex flex-col items-center justify-center gap-2 py-12 text-center"
     >
+      <Icon className="h-8 w-8 text-ink-3" aria-hidden />
       <p className="text-[17px] font-semibold">{title}</p>
       {hint && <p className="text-[15px] text-ink-2">{hint}</p>}
     </div>
@@ -216,7 +226,7 @@ export function ConfirmDialog({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
+      className="overlay-in fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
       onClick={onClose}
     >
       <div
@@ -225,7 +235,7 @@ export function ConfirmDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
-        className="max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-card bg-surface p-5 shadow-card"
+        className="dialog-in max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-card bg-surface p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         <p id={titleId} className="text-[17px] font-semibold">
@@ -327,13 +337,16 @@ export function Sheet({
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/30 md:hidden" onClick={onClose}>
+    <div
+      className="overlay-in fixed inset-0 z-50 flex items-end bg-black/30 md:hidden"
+      onClick={onClose}
+    >
       <div
         ref={ref}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
-        className="max-h-[85vh] w-full overflow-y-auto rounded-t-card bg-surface p-5 shadow-card"
+        className="sheet-in max-h-[85vh] w-full overflow-y-auto rounded-t-card bg-surface p-5 shadow-card"
         onClick={(e) => e.stopPropagation()}
       >
         {title && (

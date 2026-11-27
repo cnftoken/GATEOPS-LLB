@@ -76,7 +76,7 @@ function DetailContent({ id }: { id: string }) {
         </p>
       )}
       <Card className="max-w-lg">
-        <dl className="grid grid-cols-2 gap-4 text-[15px]">
+        <dl className="grid grid-cols-1 gap-4 text-[15px] sm:grid-cols-2">
           <div>
             <dt className="text-[13px] text-ink-2">Nama</dt>
             <dd>{p.nama}</dd>

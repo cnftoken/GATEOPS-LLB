@@ -126,7 +126,7 @@ function LaporanContent() {
               aria-label="Filter NRP"
             />
           </div>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label htmlFor="status" className="mb-1 block text-[13px] font-medium text-ink-2">
               Status aktivitas
             </label>
