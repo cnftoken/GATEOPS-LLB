@@ -43,7 +43,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const code = body.error?.code ?? "INTERNAL_ERROR";
-    throw new ApiError(code, body.error?.message ?? messageForCode(code), res.status);
+    throw new ApiError(code, messageForCode(code), res.status);
   }
   return body as T;
 }

@@ -16,9 +16,10 @@ import {
   ShieldCheck,
   ScrollText,
   MoreHorizontal,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
-import { apiGet } from "@/lib/api";
+import { apiGet, apiMutate } from "@/lib/api";
 import { homeForRole, type Me, type Role } from "@/lib/session";
 import { Skeleton, Sheet } from "./ui";
 
@@ -100,6 +101,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data, isLoading, isError } = useSession();
   const me = data?.data;
 
+  async function logout(): Promise<void> {
+    try {
+      await apiMutate("auth/logout", "POST");
+    } finally {
+      router.replace("/login");
+      router.refresh();
+    }
+  }
+
   useEffect(() => {
     if (!me) return;
     if (me.mustChangePassword && pathname !== "/ganti-password") {
@@ -149,16 +159,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         Lewati ke konten
       </a>
-      <Sidebar items={items} pathname={pathname} nama={current.nama} />
+      <Sidebar items={items} pathname={pathname} nama={current.nama} onLogout={logout} />
       <main id="main" className="md:pl-[260px] md:pr-6 pb-24 md:pb-10 pt-6 md:pt-10">
         <div className="mx-auto max-w-[1200px]">{children}</div>
       </main>
-      <BottomNav items={items} pathname={pathname} />
+      <BottomNav items={items} pathname={pathname} onLogout={logout} />
     </div>
   );
 }
 
-function Sidebar({ items, pathname, nama }: { items: NavItem[]; pathname: string; nama: string }) {
+function Sidebar({
+  items,
+  pathname,
+  nama,
+  onLogout,
+}: {
+  items: NavItem[];
+  pathname: string;
+  nama: string;
+  onLogout: () => void;
+}) {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col border-r border-line bg-surface/70 backdrop-blur-xl md:flex md:w-[72px] lg:w-[260px]">
       <div className="flex h-16 items-center gap-2 px-5">
@@ -188,7 +208,17 @@ function Sidebar({ items, pathname, nama }: { items: NavItem[]; pathname: string
           );
         })}
       </nav>
-      <div className="hidden border-t border-line p-4 text-[13px] text-ink-3 lg:block">{nama}</div>
+      <div className="hidden border-t border-line p-4 lg:block">
+        <p className="text-[13px] text-ink-3">{nama}</p>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="mt-2 flex h-11 w-full items-center gap-2 rounded-control px-2 text-[15px] text-ink-2 hover:bg-black/5"
+        >
+          <LogOut className="h-5 w-5" aria-hidden />
+          Keluar
+        </button>
+      </div>
     </aside>
   );
 }
@@ -205,7 +235,15 @@ function shortLabel(label: string): string {
     .replace("Scan QR", "Scan");
 }
 
-function BottomNav({ items, pathname }: { items: NavItem[]; pathname: string }) {
+function BottomNav({
+  items,
+  pathname,
+  onLogout,
+}: {
+  items: NavItem[];
+  pathname: string;
+  onLogout: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const visible = items.length > 5 ? items.slice(0, 4) : items;
   return (
@@ -255,6 +293,17 @@ function BottomNav({ items, pathname }: { items: NavItem[]; pathname: string }) 
               </Link>
             );
           })}
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onLogout();
+            }}
+            className="flex min-h-11 w-full items-center gap-3 rounded-control px-3 text-[15px] text-danger hover:bg-black/5"
+          >
+            <LogOut className="h-5 w-5" aria-hidden />
+            Keluar
+          </button>
         </div>
       </Sheet>
     </nav>

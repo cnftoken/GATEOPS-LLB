@@ -32,6 +32,7 @@ function VerifikasiContent() {
   const qc = useQueryClient();
   const [status, setStatus] = useState<(typeof FILTERS)[number]>("MENUNGGU");
   const [rejectId, setRejectId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -44,6 +45,17 @@ function VerifikasiContent() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["persit-requests"] }),
     onError: (err) =>
       setError(err instanceof ApiError ? err.message : messageForCode("INTERNAL_ERROR")),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => apiMutate(`persit/accounts/${id}`, "DELETE"),
+    onSuccess: () => {
+      setDeleteId(null);
+      qc.invalidateQueries({ queryKey: ["persit-requests"] });
+    },
+    onError: (err) => {
+      setDeleteId(null);
+      setError(err instanceof ApiError ? err.message : messageForCode("INTERNAL_ERROR"));
+    },
   });
   const reject = useMutation({
     mutationFn: (id: string) => apiMutate(`persit/accounts/${id}/reject`, "POST"),
@@ -99,6 +111,11 @@ function VerifikasiContent() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge tone={LINK_TONE[r.status]}>{r.status}</Badge>
+                  {r.status === "DISETUJUI" && (
+                    <Button variant="secondary" onClick={() => setDeleteId(r.persit_account_id)}>
+                      Cabut & hapus
+                    </Button>
+                  )}
                   {r.status === "MENUNGGU" && (
                     <>
                       <Button
@@ -118,6 +135,15 @@ function VerifikasiContent() {
           </ul>
         )}
       </Card>
+      <ConfirmDialog
+        open={deleteId !== null}
+        title="Cabut pengaitan dan hapus akun Persit?"
+        description="Akun Persit dan pengaitannya akan dihapus permanen."
+        confirmLabel="Hapus"
+        danger
+        onConfirm={() => deleteId && remove.mutate(deleteId)}
+        onClose={() => setDeleteId(null)}
+      />
       <ConfirmDialog
         open={rejectId !== null}
         title="Tolak pengaitan?"

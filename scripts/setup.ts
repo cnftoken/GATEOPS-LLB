@@ -1,5 +1,8 @@
 // Wizard setup (PRD 25.2/25.3). Idempoten. Tidak mencetak secret.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { createInterface } from "node:readline/promises";
 import {
   apiFetch,
   ensureInternalSecret,
@@ -21,18 +24,27 @@ function writeLocalSetup(values: Record<string, string>): void {
   writeFileSync(".local/setup.json", JSON.stringify({ ...readLocalSetup(), ...values }, null, 2));
 }
 
-async function bootstrapSuperAdmin(): Promise<void> {
-  const setup = readLocalSetup();
-  let username = process.env.GATEOPS_SA_USERNAME ?? setup.saUsername;
-  let password = process.env.GATEOPS_SA_PASSWORD ?? setup.saPassword;
-  if (!username || !password) {
-    username = username ?? "superadmin";
-    password = password ?? randomPassword();
-    writeLocalSetup({ saUsername: username, saPassword: password });
-    log(
-      `Super Admin lokal dibuat: username ${username} (password tersimpan di .local/setup.json).`,
-    );
+function randomPassword(len = 16): string {
+  return randomBytes(len).toString("base64url").slice(0, len);
+}
+
+async function ask(question: string, secret = false): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    if (secret) process.stdout.write(question);
+    return (await rl.question(secret ? "" : question)).trim();
+  } finally {
+    rl.close();
+    if (secret) process.stdout.write("\n");
   }
+}
+
+async function bootstrapSuperAdmin(
+  username: string,
+  password: string,
+  persist: boolean,
+): Promise<void> {
+  if (persist) writeLocalSetup({ saUsername: username, saPassword: password });
   const res = await apiFetch("accounts/bootstrap", "POST", {
     username,
     password,
@@ -42,16 +54,16 @@ async function bootstrapSuperAdmin(): Promise<void> {
     const created = (res.json as { data?: { created?: boolean } }).data?.created;
     log(`Super Admin bootstrap: ${created === false ? "sudah ada (dilewati)" : "dibuat"}.`);
   } else {
-    log(`Super Admin bootstrap gagal (status ${res.status}).`);
+    throw new Error(`bootstrap Super Admin gagal (status ${res.status}).`);
   }
 }
 
-function randomPassword(len = 16): string {
-  return Array.from(
-    { length: len },
-    () =>
-      "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"[Math.floor(Math.random() * 54)],
-  ).join("");
+function runWithInput(command: string, input: string): string {
+  return execFileSync("bash", ["-lc", command], {
+    encoding: "utf8",
+    input,
+    stdio: ["pipe", "pipe", "pipe"],
+  }).trim();
 }
 
 async function setupLocal(): Promise<void> {
@@ -72,7 +84,10 @@ async function setupLocal(): Promise<void> {
   log("Langkah: supabase db reset (migrasi + seed kosong)");
   run("supabase db reset");
 
-  await bootstrapSuperAdmin();
+  const setup = readLocalSetup();
+  const username = process.env.GATEOPS_SA_USERNAME ?? setup.saUsername ?? "superadmin";
+  const password = process.env.GATEOPS_SA_PASSWORD ?? setup.saPassword ?? randomPassword();
+  await bootstrapSuperAdmin(username, password, true);
   log("Setup lokal selesai. Jalankan `pnpm dev`.");
 }
 
@@ -86,36 +101,97 @@ function requireExplicitProduction(argv: string[]): void {
   }
 }
 
+async function smokeTest(baseInput: string, username: string, password: string): Promise<void> {
+  const base = baseInput.replace(/\/+$/, "");
+  const health = await fetch(`${base}/api/v1/health`);
+  if (!health.ok) throw new Error(`smoke health gagal: ${health.status}`);
+
+  const login = await fetch(`${base}/api/v1/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: base },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!login.ok) throw new Error(`smoke login gagal: ${login.status}`);
+  const setCookie = login.headers.get("set-cookie") ?? "";
+  const cookie = setCookie.match(/gateops_session=[^;]+/)?.[0] ?? "";
+  if (!cookie) throw new Error("smoke login tidak mengembalikan cookie sesi");
+
+  const me = await fetch(`${base}/api/v1/auth/me`, { headers: { Cookie: cookie } });
+  if (!me.ok) throw new Error(`smoke auth/me gagal: ${me.status}`);
+
+  const logout = await fetch(`${base}/api/v1/auth/logout`, {
+    method: "POST",
+    headers: { Cookie: cookie, Origin: base },
+  });
+  if (!logout.ok) throw new Error(`smoke logout gagal: ${logout.status}`);
+  log("Smoke test lulus: health, login, auth/me, logout.");
+}
+
 async function setupProduction(argv: string[]): Promise<void> {
   requireExplicitProduction(argv);
   const env = readEnvLocal();
   const ref = process.env.SUPABASE_PROJECT_REF ?? env.SUPABASE_PROJECT_REF;
   if (!ref) throw new Error("SUPABASE_PROJECT_REF belum diset.");
 
+  log("Langkah 1/14 preflight doctor");
+  run("pnpm doctor", { allowFail: true });
+  run("supabase login", { allowFail: true });
+  run("vercel login", { allowFail: true });
+
+  log("Langkah 2/14 input wizard");
+  const vercelProject = await ask("Nama project Vercel: ");
+  await ask("Password database Supabase (tidak disimpan): ", true);
+  const saUsername = await ask("Username Super Admin: ");
+  const saPassword = await ask("Password Super Admin: ", true);
+  const saRepeat = await ask("Ulangi password Super Admin: ", true);
+  if (saPassword !== saRepeat) throw new Error("Password Super Admin tidak sama.");
+
+  log("Langkah 3/14 secret internal");
   ensureInternalSecret();
   const secret = readEnvLocal().GATEOPS_INTERNAL_SECRET ?? "";
 
-  log("Langkah: pnpm install --frozen-lockfile");
+  log("Langkah 4/14 dependensi");
   run("pnpm install --frozen-lockfile");
 
-  log("Langkah: supabase link");
-  run(`supabase link --project-ref ${ref}`, { allowFail: true });
+  log("Langkah 5/14 supabase link");
+  run(`supabase link --project-ref ${ref}`);
 
-  log("Langkah: supabase db push");
+  log("Langkah 6/14 migrasi");
   run("supabase db push");
 
-  log("Langkah: supabase functions deploy");
+  log("Langkah 7/14 ekstensi (migrasi pertama)");
+  log("pgTAP dan pg_cron diaktifkan oleh migrasi 170000/170500.");
+
+  log("Langkah 8/14 Edge Functions");
   run("supabase functions deploy");
 
-  log("Langkah: supabase secrets set GATEOPS_INTERNAL_SECRET");
-  run(`supabase secrets set GATEOPS_INTERNAL_SECRET=${secret}`, { allowFail: true });
+  log("Langkah 9/14 secret Edge Functions");
+  run(`supabase secrets set GATEOPS_INTERNAL_SECRET=${secret}`);
 
-  await bootstrapSuperAdmin();
+  log("Langkah 10/14 Super Admin");
+  await bootstrapSuperAdmin(saUsername, saPassword, false);
 
-  log("Langkah: vercel deploy --prod");
-  run("vercel deploy --prod", { allowFail: true });
+  log("Langkah 11/14 Vercel link dan env production");
+  run(`vercel link --project ${vercelProject}`);
+  const anonKey = env.SUPABASE_ANON_KEY ?? "";
+  const webUrl = `https://${vercelProject}.vercel.app`;
+  for (const [name, value] of [
+    ["SUPABASE_FUNCTIONS_URL", `${ref}.supabase.co/functions/v1`],
+    ["SUPABASE_ANON_KEY", anonKey],
+    ["GATEOPS_INTERNAL_SECRET", secret],
+  ] as const) {
+    run(`vercel env rm ${name} production`, { allowFail: true });
+    runWithInput(`vercel env add ${name} production`, value);
+  }
 
-  log("Setup production selesai. Jalankan smoke test (PRD 25.3.13).");
+  log("Langkah 12/14 deploy awal");
+  const deployed = run("vercel deploy --prod");
+  const url = deployed.match(/https:\/\/[^\s]+\.vercel\.app/)?.[0] ?? webUrl;
+
+  log("Langkah 13/14 smoke test");
+  await smokeTest(url, saUsername, saPassword);
+
+  log(`Langkah 14/14 ringkasan: ${url} — seluruh langkah lulus.`);
 }
 
 function main(): void {
@@ -129,4 +205,4 @@ function main(): void {
   });
 }
 
-main();
+void main();

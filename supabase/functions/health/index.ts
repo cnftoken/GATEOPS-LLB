@@ -8,6 +8,7 @@ Deno.serve((req) =>
   handle(req, {
     endpoint: "health",
     auth: false,
+    public: true,
     run: async () => {
       const { error } = await serviceClient().from("accounts").select("id").limit(1);
       if (error) throw new ApiError("INTERNAL_ERROR");

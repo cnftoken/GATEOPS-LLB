@@ -41,6 +41,7 @@ export interface HandleOptions {
   auth?: boolean; // default true
   roles?: Role[];
   allowMustChange?: boolean;
+  public?: boolean;
   run: (ctx: AuthedContext | null, req: Request) => Promise<Response>;
 }
 
@@ -86,9 +87,11 @@ export async function handle(req: Request, opts: HandleOptions): Promise<Respons
   const logger = createLogger(requestId);
   const start = performance.now();
   try {
-    const expected = Deno.env.get("GATEOPS_INTERNAL_SECRET") ?? "";
-    if (!verifyInternalSecret(expected, req.headers.get("x-internal-secret"))) {
-      throw new ApiError("UNAUTHENTICATED");
+    if (!opts.public) {
+      const expected = Deno.env.get("GATEOPS_INTERNAL_SECRET") ?? "";
+      if (!verifyInternalSecret(expected, req.headers.get("x-internal-secret"))) {
+        throw new ApiError("UNAUTHENTICATED");
+      }
     }
 
     let ctx: AuthedContext | null = null;

@@ -105,25 +105,25 @@ Deno.serve((req) => {
       run: (c) => requests(req, requireCtx(c)),
     });
   }
-  if (method === "POST" && seg[2] === "approve") {
+  if (method === "POST" && seg[1] === "accounts" && seg[3] === "approve") {
     return handle(req, {
       endpoint: "persit/accounts/:id/approve",
       roles: ["SUPER_ADMIN"],
-      run: (c) => approve(requireCtx(c), seg[1] as string),
+      run: (c) => approve(requireCtx(c), seg[2] as string),
     });
   }
-  if (method === "POST" && seg[2] === "reject") {
+  if (method === "POST" && seg[1] === "accounts" && seg[3] === "reject") {
     return handle(req, {
       endpoint: "persit/accounts/:id/reject",
       roles: ["SUPER_ADMIN"],
-      run: (c) => reject(requireCtx(c), seg[1] as string),
+      run: (c) => reject(requireCtx(c), seg[2] as string),
     });
   }
-  if (method === "DELETE" && seg[1]) {
+  if (method === "DELETE" && seg[1] === "accounts" && seg[2]) {
     return handle(req, {
       endpoint: "persit/accounts/:id",
       roles: ["SUPER_ADMIN"],
-      run: (c) => remove(requireCtx(c), seg[1] as string),
+      run: (c) => remove(requireCtx(c), seg[2] as string),
     });
   }
   return handle(req, {

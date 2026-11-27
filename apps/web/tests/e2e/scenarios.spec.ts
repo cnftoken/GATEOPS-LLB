@@ -41,3 +41,13 @@ test("S-09 sesi berakhir menghentikan akses dan kamera", async ({ page, context 
   await expect(page).toHaveURL(/\/login$/, { timeout: 40000 });
   await expect(page.locator("video")).toHaveCount(0);
 });
+
+test("logout menghapus sesi dan kembali ke login", async ({ page }) => {
+  test.skip(test.info().project.name === "mobile", "tombol Keluar desktop");
+  await loginPersonnel(page);
+  await page
+    .getByRole("button", { name: "Keluar", exact: true })
+    .first()
+    .evaluate((el) => (el as HTMLElement).click());
+  await expect(page).toHaveURL(/\/login$/, { timeout: 40000 });
+});

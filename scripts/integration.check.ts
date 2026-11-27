@@ -217,7 +217,7 @@ async function main(): Promise<void> {
   );
   assert.ok(reqRow, "permintaan persit tidak ditemukan");
   const persitId = reqRow.persit_account_id as string;
-  const approve = await apiFetch(`persit/${persitId}/approve`, "POST", {}, saToken);
+  const approve = await apiFetch(`persit/accounts/${persitId}/approve`, "POST", {}, saToken);
   assert.equal(approve.status, 200, `persetujuan persit gagal: ${approve.status}`);
   const persitLogin = await apiFetch("auth/login", "POST", {
     username: persitUser,
