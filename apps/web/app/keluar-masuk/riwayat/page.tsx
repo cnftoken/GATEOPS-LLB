@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/shell";
 import { apiList } from "@/lib/api";
@@ -58,7 +59,9 @@ function RiwayatPribadiContent() {
                 >
                   <div>
                     <p className="text-[15px] font-medium">
-                      {r.exitGate ?? "—"} → {r.returnGate ?? "—"}
+                      {r.exitGate ?? "—"}{" "}
+                      <ArrowRight className="inline h-3.5 w-3.5 align-[-2px]" aria-hidden />{" "}
+                      {r.returnGate ?? "—"}
                     </p>
                     <p className="text-[13px] text-ink-2">
                       {r.tujuan} · {formatDateTime(new Date(r.exitAt))}

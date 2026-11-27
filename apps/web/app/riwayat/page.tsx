@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/shell";
 import { apiList } from "@/lib/api";
@@ -114,7 +115,9 @@ function RiwayatContent() {
                       {r.name} <span className="text-ink-3">· {r.nrp}</span>
                     </p>
                     <p className="text-[13px] text-ink-2">
-                      {r.exitGate ?? "—"} → {r.returnGate ?? "—"} · {r.tujuan}
+                      {r.exitGate ?? "—"}{" "}
+                      <ArrowRight className="inline h-3.5 w-3.5 align-[-2px]" aria-hidden />{" "}
+                      {r.returnGate ?? "—"} · {r.tujuan}
                     </p>
                   </div>
                   <div className="text-right">

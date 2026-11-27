@@ -15,6 +15,7 @@ import {
   DoorOpen,
   ShieldCheck,
   ScrollText,
+  MoreHorizontal,
   type LucideIcon,
 } from "lucide-react";
 import { apiGet } from "@/lib/api";
@@ -234,9 +235,7 @@ function BottomNav({ items, pathname }: { items: NavItem[]; pathname: string }) 
           onClick={() => setOpen(true)}
           className="flex flex-1 flex-col items-center gap-1 py-2 text-[11px] text-ink-3"
         >
-          <span className="grid h-5 w-5 place-items-center rounded-full border border-current text-[10px]">
-            ⋯
-          </span>
+          <MoreHorizontal className="h-5 w-5" aria-hidden />
           Lainnya
         </button>
       )}
