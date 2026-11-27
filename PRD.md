@@ -487,7 +487,7 @@ Pesan login:
 
 1. Lima kegagalan berturut-turut untuk satu username mengunci akun selama 15 menit. `locked_until` diisi waktu sekarang ditambah 15 menit.
 2. Selama terkunci, login ditolak tanpa memverifikasi password.
-3. Setelah `locked_until` lewat, percobaan login diizinkan kembali dan `failed_login_count` direset saat login berhasil.
+3. Setelah `locked_until` lewat, percobaan login diizinkan kembali. `failed_login_count` dan `locked_until` direset pada percobaan berikutnya, lalu kegagalan baru dihitung dari nol. Reset yang sama terjadi saat login berhasil.
 4. Lockout tidak menghasilkan audit log.
 
 ### 7.5 Sesi

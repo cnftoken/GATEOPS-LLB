@@ -411,6 +411,31 @@ async function main(): Promise<void> {
   const locked = await apiFetch("auth/login", "POST", { username: lockUser, password: lockPass });
   assert.equal(locked.status, 429, "lockout harus aktif setelah 5 kegagalan");
 
+  // PRD 7.4.3: setelah masa kunci lewat, kegagalan baru dihitung dari 0.
+  execFileSync("docker", [
+    "exec",
+    "-i",
+    dbContainer,
+    "psql",
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-c",
+    `UPDATE public.accounts SET locked_until = now() - interval '1 minute' WHERE username = '${lockUser}';`,
+  ]);
+  const afterExpiry = await apiFetch("auth/login", "POST", {
+    username: lockUser,
+    password: "salah",
+  });
+  assert.equal(
+    afterExpiry.status,
+    401,
+    "setelah kunci lewat, kegagalan baru tidak langsung lockout",
+  );
+  const unlocked = await apiFetch("auth/login", "POST", { username: lockUser, password: lockPass });
+  assert.equal(unlocked.status, 200, "login benar setelah kunci lewat harus berhasil");
+
   console.log(
     "PASS: integration (bootstrap, RBAC, personel, gate, S-07, GPS, S-16, persit, reset, lockout)",
   );

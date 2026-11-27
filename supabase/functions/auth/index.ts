@@ -41,6 +41,17 @@ async function login(req: Request): Promise<Response> {
     throw new ApiError("RATE_LIMITED", MESSAGES.LOGIN_LOCKED);
   }
 
+  // PRD 7.4.3: masa kunci lewat -> reset penghitung sebelum percobaan berikutnya.
+  if (account?.locked_until && Date.parse(account.locked_until) <= now) {
+    const { error: unlockError } = await supabase
+      .from("accounts")
+      .update({ failed_login_count: 0, locked_until: null })
+      .eq("id", account.id);
+    checkDb(unlockError);
+    account.failed_login_count = 0;
+    account.locked_until = null;
+  }
+
   const ok = await verifyPassword(password, account?.password_hash ?? DUMMY_HASH);
 
   if (!account || !ok) {
