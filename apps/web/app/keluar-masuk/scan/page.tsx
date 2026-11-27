@@ -166,12 +166,13 @@ function ScanContent() {
       {phase === "result" && result && (
         <Card className="max-w-md">
           <p className="text-[17px] font-semibold">
-            {result.type === "KELUAR" ? "Keluar tercatat" : "Kembali tercatat"}
-          </p>
-          <p className="mt-1 text-[15px] text-ink-2">
-            {formatDateTime(new Date(result.occurredAt))} melalui {result.gateName}.
-            {result.durationSeconds !== null &&
-              ` Durasi di luar: ${formatDuration(result.durationSeconds)}.`}
+            {result.type === "KELUAR"
+              ? `Keluar tercatat pada ${formatDateTime(new Date(result.occurredAt))} melalui ${result.gateName}.`
+              : `Kembali tercatat pada ${formatDateTime(new Date(result.occurredAt))} melalui ${result.gateName}.${
+                  result.durationSeconds !== null
+                    ? ` Durasi di luar: ${formatDuration(result.durationSeconds)}.`
+                    : ""
+                }`}
           </p>
           <Button variant="secondary" className="mt-4 w-full" onClick={scanAgain}>
             Scan ulang

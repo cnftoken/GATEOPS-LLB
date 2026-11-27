@@ -242,6 +242,13 @@ async function main(): Promise<void> {
     pToken,
   );
   assert.equal(gps.status, 200, `laporan GPS gagal: ${gps.status}`);
+  const emptyCoord = await apiFetch(
+    "gps/report",
+    "POST",
+    { permissionState: "GRANTED", latitude: "", longitude: "" },
+    pToken,
+  );
+  assert.equal(emptyCoord.status, 400, "koordinat kosong harus ditolak");
   const komando = await apiFetch("dashboard/komando", "GET", undefined, saToken);
   const outside =
     (komando.json as { data?: { outside?: Array<{ nrp?: string; gpsStatus?: string }> } }).data

@@ -6,6 +6,49 @@ export const SESSION_COOKIE = "gateops_session";
 const SESSION_MAX_AGE = 12 * 60 * 60; // 12 jam (PRD 7.3.9)
 
 const MUTATION_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
+const MAX_BODY_BYTES = 64 * 1024;
+const UPSTREAM_TIMEOUT_MS = 10_000;
+
+// Daftar izin path PRD 22.5. Path di luar daftar tidak pernah diteruskan.
+const ALLOWED: ReadonlyArray<readonly [string, RegExp]> = [
+  ["GET", /^health$/],
+  ["POST", /^auth\/login$/],
+  ["POST", /^auth\/logout$/],
+  ["GET", /^auth\/me$/],
+  ["POST", /^auth\/password$/],
+  ["GET", /^dashboard\/komando$/],
+  ["GET", /^dashboard\/beranda$/],
+  ["GET", /^dashboard\/keluarga$/],
+  ["GET", /^personnel$/],
+  ["POST", /^personnel$/],
+  ["GET", /^personnel\/[^/]+$/],
+  ["PATCH", /^personnel\/[^/]+$/],
+  ["DELETE", /^personnel\/[^/]+$/],
+  ["GET", /^accounts$/],
+  ["POST", /^accounts$/],
+  ["PATCH", /^accounts\/[^/]+$/],
+  ["POST", /^accounts\/[^/]+\/status$/],
+  ["POST", /^accounts\/[^/]+\/reset-password$/],
+  ["GET", /^gates$/],
+  ["POST", /^gates$/],
+  ["GET", /^gates\/[^/]+$/],
+  ["PATCH", /^gates\/[^/]+$/],
+  ["POST", /^gates\/[^/]+\/regenerate-qr$/],
+  ["POST", /^transactions\/scan$/],
+  ["POST", /^gps\/report$/],
+  ["GET", /^gps$/],
+  ["GET", /^activities$/],
+  ["GET", /^activities\/report$/],
+  ["GET", /^activities\/mine$/],
+  ["GET", /^activities\/mine\/[^/]+$/],
+  ["GET", /^activities\/[^/]+$/],
+  ["POST", /^persit\/register$/],
+  ["GET", /^persit\/requests$/],
+  ["POST", /^persit\/accounts\/[^/]+\/approve$/],
+  ["POST", /^persit\/accounts\/[^/]+\/reject$/],
+  ["DELETE", /^persit\/accounts\/[^/]+$/],
+  ["GET", /^audit$/],
+];
 
 function env(name: string): string {
   const value = process.env[name];
@@ -37,6 +80,20 @@ function forbidden(requestId: string): NextResponse {
 export async function handleBff(request: NextRequest, path: string[]): Promise<NextResponse> {
   const requestId = crypto.randomUUID();
   const method = request.method.toUpperCase();
+  const route = path.join("/");
+
+  if (path.some((segment) => segment === "" || segment === "." || segment === "..")) {
+    return NextResponse.json(
+      { error: { code: "NOT_FOUND", message: "Endpoint tidak ditemukan.", requestId } },
+      { status: 404 },
+    );
+  }
+  if (!ALLOWED.some(([m, re]) => m === method && re.test(route))) {
+    return NextResponse.json(
+      { error: { code: "NOT_FOUND", message: "Endpoint tidak ditemukan.", requestId } },
+      { status: 404 },
+    );
+  }
 
   if (MUTATION_METHODS.has(method) && !isSameOrigin(request)) {
     return forbidden(requestId);
@@ -50,16 +107,30 @@ export async function handleBff(request: NextRequest, path: string[]): Promise<N
   if (sessionToken) headers.set("X-Session-Token", sessionToken);
 
   const hasBody = method !== "GET" && method !== "HEAD";
+  const declaredLength = Number(request.headers.get("content-length") ?? "0");
+  if (hasBody && declaredLength > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { error: { code: "VALIDATION_FAILED", message: "Body terlalu besar.", requestId } },
+      { status: 413 },
+    );
+  }
   const body = hasBody ? await request.text() : undefined;
+  if (body !== undefined && new TextEncoder().encode(body).length > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { error: { code: "VALIDATION_FAILED", message: "Body terlalu besar.", requestId } },
+      { status: 413 },
+    );
+  }
 
-  const upstream = await fetch(`${functionsBase()}/${path.join("/")}`, {
+  const upstream = await fetch(`${functionsBase()}/${route}`, {
     method,
     headers,
     body,
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
 
-  const isLogin = path.join("/") === "auth/login" && method === "POST";
-  const isLogout = path.join("/") === "auth/logout";
+  const isLogin = route === "auth/login" && method === "POST";
+  const isLogout = route === "auth/logout";
 
   if (isLogin && upstream.ok) {
     const payload = (await upstream.json()) as {

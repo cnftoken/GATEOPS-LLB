@@ -7,6 +7,14 @@ import { computeGpsStatus, type GpsRow } from "../_shared/gps.ts";
 import { checkDb } from "../_shared/db.ts";
 import { callRpc } from "../_shared/db.ts";
 
+function parseCoordinate(value: unknown, min: number, max: number): number {
+  if (value === null || value === undefined) throw new ApiError("VALIDATION_FAILED");
+  if (typeof value === "string" && value.trim() === "") throw new ApiError("VALIDATION_FAILED");
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < min || n > max) throw new ApiError("VALIDATION_FAILED");
+  return n;
+}
+
 interface ActiveRow {
   personnel_account_id: string;
   exit_at: string;
@@ -26,16 +34,8 @@ async function report(
   let latitude: number | null = null;
   let longitude: number | null = null;
   if (permissionState === "GRANTED") {
-    if (body.latitude === null || body.latitude === undefined)
-      throw new ApiError("VALIDATION_FAILED");
-    if (body.longitude === null || body.longitude === undefined)
-      throw new ApiError("VALIDATION_FAILED");
-    latitude = Number(body.latitude);
-    longitude = Number(body.longitude);
-    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)
-      throw new ApiError("VALIDATION_FAILED");
-    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)
-      throw new ApiError("VALIDATION_FAILED");
+    latitude = parseCoordinate(body.latitude, -90, 90);
+    longitude = parseCoordinate(body.longitude, -180, 180);
   }
 
   await callRpc(

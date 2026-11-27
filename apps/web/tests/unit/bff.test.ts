@@ -46,6 +46,37 @@ describe("BFF (4.7, PRD 7.3/22.1)", () => {
     expect(headers.get("x-session-token")).toBe("sess-123");
   });
 
+  it("menolak path traversal dan path di luar allowlist (404)", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const traversal = await handleBff(req("health"), ["..", "health"]);
+    expect(traversal.status).toBe(404);
+    const denied = await handleBff(req("admin/secret"), ["admin", "secret"]);
+    expect(denied.status).toBe(404);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("menolak body melebihi batas (413)", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await handleBff(
+      req("auth/login", {
+        method: "POST",
+        headers: {
+          origin: "http://localhost",
+          host: "localhost",
+          "content-length": String(64 * 1024 + 1),
+        },
+      }),
+      ["auth", "login"],
+    );
+
+    expect(res.status).toBe(413);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("menolak mutasi dengan Origin berbeda (403)", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);

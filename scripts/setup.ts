@@ -81,8 +81,18 @@ async function setupLocal(): Promise<void> {
     SUPABASE_ANON_KEY: anonKey,
   });
 
-  log("Langkah: supabase db reset (migrasi + seed kosong)");
-  run("supabase db reset");
+  let pending = true;
+  try {
+    pending = /not applied/i.test(run("supabase migration list"));
+  } catch {
+    pending = true;
+  }
+  if (pending) {
+    log("Langkah: supabase db reset (migrasi tertunda)");
+    run("supabase db reset");
+  } else {
+    log("Langkah: migrasi sudah sesuai (db reset dilewati)");
+  }
 
   const setup = readLocalSetup();
   const username = process.env.GATEOPS_SA_USERNAME ?? setup.saUsername ?? "superadmin";

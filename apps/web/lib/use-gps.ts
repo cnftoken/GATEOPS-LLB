@@ -27,8 +27,9 @@ export function useGpsTracking(enabled: boolean): void {
             longitude: pos.coords.longitude,
           }).catch(() => {});
         },
-        () => {
-          // Izin diberikan tetapi posisi tidak tersedia/timeout: tidak ada pengiriman (PRD 11.3).
+        (err) => {
+          // Izin dicabut saat request: kirim DENIED segera (PRD 11.3).
+          if (err.code === err.PERMISSION_DENIED) sendDenied();
         },
         { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
       );
