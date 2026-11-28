@@ -268,7 +268,7 @@ Rujukan: PRD 12–21, 20.2 (rute), 10.6 (kamera), 11 (GPS klien), 14 (PDF).
 Rujukan: PRD 25, 26.4.
 
 - [x] 6.1 — `doctor.ts` (prasyarat, login, koneksi, RLS, grant RPC, health) — PRD 25.6
-- [x] 6.2 — `setup.ts` target production (alur 25.3, idempoten) — PRD 25.3, 25.5, FR-55, S-19
+- [~] 6.2 — `setup.ts` target production (alur 25.3, idempoten; perbaikan pengambilan legacy anon key sebelum bootstrap) — PRD 25.3, 25.5, FR-55, S-19
 - [x] 6.3 — `setup.ts --target local` (secret Edge Functions tersedia sebelum supabase start, migrasi, health, bootstrap SA) — PRD 25.3, FR-55, S-19
 - [x] 6.4 — `release.ts` (urutan 26.4, stop bila gagal) — PRD 26.4, FR-55, S-20
 - [x] 6.5 — `seed-demo.ts` (tolak non-local, kredensial di `.local/`) — PRD 25.7
@@ -536,3 +536,5 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-28 | 7.11, FR-55 | PRD 23 FR-55, 26.4.B, 27.2 S-19/S-20; AGENTS 3, 10 | fix/supabase-cli-rate-limit | CI #78 membuktikan Typecheck, Unit, dan Dependency audit lulus; Lint gagal pada Prettier file tes | Format `scripts/deployment-workflow.test.ts` disalin dari keluaran aktual Prettier 3.10.1 di runner CI (bukan format manual); langkah diagnostik sementara dihapus. Menunggu seluruh CI terbaru dan workflow production sebelum menandai FR-55/S-20 selesai. |
 
 | 2026-11-28 | 7.11, FR-55; aturan kerja format | PRD 23 FR-55, 26.4.B, 27.2 S-19/S-20; AGENTS 3 | fix/supabase-cli-rate-limit | CI #81: lint/format, typecheck, unit, build, dan audit sukses; pgTAP/E2E masih berjalan | Penyebab format berulang ditangani memakai output resmi Prettier 3.10.1 dari runner CI. AGENTS 3 kini mewajibkan `pnpm exec prettier --write` pada file yang diubah sebelum `pnpm lint`, melarang tebakan format manual dan perubahan konfigurasi untuk meloloskan CI. Menunggu seluruh gerbang CI dan workflow production untuk verifikasi FR-55/S-20. |
+
+| 2026-11-28 | 6.2, FR-55 | PRD 25.3 langkah 10, 25.4, 23 FR-55, 27.2 S-19; AGENTS 3, 10 | fix/bootstrap-anon-key-setup | Tes regresi `scripts/setup-bootstrap.test.ts` ditambahkan sebelum implementasi; CI menunggu | Bootstrap production sebelumnya mengandalkan `SUPABASE_ANON_KEY` yang kebetulan sudah ada di `.env.local`; wizard tidak mengambilnya dari project. Perbaikan mengambil legacy anon key melalui `supabase projects api-keys --project-ref ... --output json`, memvalidasi sebelum bootstrap, dan menyimpannya ke `.env.local` tanpa mencetak nilainya. Verifikasi CI dan bootstrap production masih menunggu. |
