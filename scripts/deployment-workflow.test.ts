@@ -42,5 +42,6 @@ test("FR-55 S-19: Vercel deployment guide requires no local deployment CLI", () 
   assert.match(deploymentGuide, /Root Directory.*apps\/web/);
   assert.match(deploymentGuide, /Build Command.*@gateops\/web build/);
   assert.match(deploymentGuide, /SUPABASE_FUNCTIONS_URL/);
-  assert.doesNotMatch(deploymentGuide.split("## 6. Jalur CLI opsional")[0], /pnpm (setup|doctor|release) wajib/);
+  const standardGuide = deploymentGuide.split("## 6. Jalur CLI opsional")[0] ?? "";
+  assert.doesNotMatch(standardGuide, /pnpm (setup|doctor|release) wajib/);
 });
