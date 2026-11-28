@@ -12,6 +12,7 @@ import {
   run,
   writeEnvLocal,
 } from "./_lib";
+import { runSupabaseLink } from "./setup-production";
 
 function readLocalSetup(): Record<string, string> {
   const path = ".local/setup.json";
@@ -140,8 +141,6 @@ async function smokeTest(baseInput: string, username: string, password: string):
 async function setupProduction(argv: string[]): Promise<void> {
   requireExplicitProduction(argv);
   const env = readEnvLocal();
-  const ref = process.env.SUPABASE_PROJECT_REF ?? env.SUPABASE_PROJECT_REF;
-  if (!ref) throw new Error("SUPABASE_PROJECT_REF belum diset.");
 
   log("Langkah 1/14 preflight doctor");
   run("pnpm doctor", { allowFail: true });
@@ -149,8 +148,13 @@ async function setupProduction(argv: string[]): Promise<void> {
   run("vercel login", { allowFail: true });
 
   log("Langkah 2/14 input wizard");
+  const ref = await ask("Supabase project ref: ");
   const vercelProject = await ask("Nama project Vercel: ");
-  await ask("Password database Supabase (tidak disimpan): ", true);
+  const databasePassword = await ask("Password database Supabase (tidak disimpan): ", true);
+  if (!ref.trim()) throw new Error("Supabase project ref wajib diisi.");
+  if (!vercelProject.trim()) throw new Error("Nama project Vercel wajib diisi.");
+  if (!databasePassword.trim()) throw new Error("Password database Supabase wajib diisi.");
+  writeEnvLocal({ SUPABASE_PROJECT_REF: ref.trim() });
   const saUsername = await ask("Username Super Admin: ");
   const saPassword = await ask("Password Super Admin: ", true);
   const saRepeat = await ask("Ulangi password Super Admin: ", true);
@@ -164,7 +168,7 @@ async function setupProduction(argv: string[]): Promise<void> {
   run("pnpm install --frozen-lockfile");
 
   log("Langkah 5/14 supabase link");
-  run(`supabase link --project-ref ${ref}`);
+  runSupabaseLink(ref, databasePassword);
 
   log("Langkah 6/14 migrasi");
   run("supabase db push");
@@ -176,13 +180,27 @@ async function setupProduction(argv: string[]): Promise<void> {
   run("supabase functions deploy");
 
   log("Langkah 9/14 secret Edge Functions");
-  run(`supabase secrets set GATEOPS_INTERNAL_SECRET=${secret}`);
+  try {
+    execFileSync("supabase", ["secrets", "set", `GATEOPS_INTERNAL_SECRET=${secret}`], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch {
+    throw new Error("Gagal mengatur GATEOPS_INTERNAL_SECRET pada Supabase.");
+  }
 
   log("Langkah 10/14 Super Admin");
   await bootstrapSuperAdmin(saUsername, saPassword, false);
 
   log("Langkah 11/14 Vercel link dan env production");
-  run(`vercel link --project ${vercelProject}`);
+  try {
+    execFileSync("vercel", ["link", "--project", vercelProject], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch {
+    throw new Error("Gagal menghubungkan project Vercel.");
+  }
   const anonKey = env.SUPABASE_ANON_KEY ?? "";
   const webUrl = `https://${vercelProject}.vercel.app`;
   for (const [name, value] of [
