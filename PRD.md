@@ -1769,10 +1769,10 @@ Tujuan bagian ini adalah instalasi dan konfigurasi yang berjalan otomatis melalu
 | Akun Supabase | Aktif | Project Supabase production dibuat sekali secara manual oleh Owner |
 | Akun Vercel | Aktif | Project Vercel dibuat oleh wizard atau sudah ada |
 | Docker | Versi terbaru | Hanya untuk target local |
-| Supabase CLI | Versi di devDependency | Dipasang melalui pnpm |
-| Vercel CLI | Versi di devDependency | Dipasang melalui pnpm |
+| Supabase CLI | Versi di devDependency | Hanya diperlukan untuk alur CLI opsional; workflow GitHub memasang CLI sendiri |
+| Vercel CLI | Versi di devDependency | Hanya diperlukan untuk alur CLI opsional; deployment standar dilakukan melalui dashboard Vercel |
 
-Pembuatan project Supabase production dilakukan sekali oleh Owner di dashboard Supabase. Setup menerima project ref dari project tersebut. Seluruh langkah lain berjalan otomatis.
+Pembuatan project Supabase production dilakukan sekali oleh Owner di dashboard Supabase. Deployment standar tidak memerlukan Supabase CLI atau Vercel CLI pada komputer developer.
 
 ### 25.2 Perintah Utama
 
