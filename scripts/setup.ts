@@ -146,8 +146,6 @@ async function smokeTest(baseInput: string, username: string, password: string):
 
 async function setupProduction(argv: string[]): Promise<void> {
   requireExplicitProduction(argv);
-  const env = readEnvLocal();
-
   log("Langkah 1/14 preflight doctor");
   run("pnpm doctor", { allowFail: true });
   run("supabase login", { allowFail: true });
