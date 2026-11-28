@@ -28,7 +28,9 @@ test("FR-55/S-20: workflow uses required secrets only", () => {
 });
 
 test("FR-55/S-20: database password is passed without an interactive prompt", () => {
-  assert.ok(workflow.includes('supabase link --project-ref "$SUPABASE_PROJECT_REF"'));
+  assert.ok(
+    workflow.includes('supabase link --project-ref "$SUPABASE_PROJECT_REF"'),
+  );
   assert.ok(workflow.includes('--password "$SUPABASE_DB_PASSWORD"'));
 });
 
