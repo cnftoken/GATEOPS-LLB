@@ -52,7 +52,7 @@ Pelanggaran terhadap aturan ini membuat perubahan ditolak, sekalipun tes lulus.
 18. Desain hanya light mode. Warna dan tipografi wajib memakai design tokens di PRD Bagian 21.2. Nilai hardcoded di komponen DILARANG.
 19. Super Admin dan Komandan tidak dapat dihapus. Akun Personel yang sedang DI LUAR tidak dapat dinonaktifkan.
 20. Environment staging DILARANG dibuat. Preview deployment Vercel tidak boleh terhubung ke Supabase production.
-21. Deployment production web dilakukan melalui integrasi Git Vercel (auto deployment boleh aktif/nonaktif). Migrasi dan Edge Functions production dilakukan melalui workflow GitHub Actions `Deploy Supabase Production` yang hanya berjalan manual (`workflow_dispatch`) pada branch `main`. `pnpm release` dan `pnpm setup` tetap tersedia sebagai jalur CLI opsional. DILARANG menjalankan perintah deploy production secara ad-hoc di luar workflow atau jalur CLI tersebut.
+21. Deployment production web dilakukan melalui integrasi Git Vercel (auto deployment boleh aktif/nonaktif). Migrasi dan Edge Functions production dilakukan melalui workflow GitHub Actions `Deploy Supabase Production` yang hanya berjalan manual (`workflow_dispatch`) pada branch `main`. Untuk perubahan backend, auto deployment Vercel dinonaktifkan sebelum merge; jalankan workflow Supabase lebih dahulu, lalu deploy web manual. `pnpm release` dan `pnpm setup` tetap tersedia sebagai jalur CLI opsional. DILARANG menjalankan perintah deploy production secara ad-hoc di luar workflow atau jalur CLI tersebut.
 22. `To-dos.md` WAJIB dijaga tetap sinkron dengan pekerjaan. DILARANG menandai item selesai tanpa bukti, dan DILARANG menyelesaikan pekerjaan tanpa memperbarui `To-dos.md`.
 
 ---
