@@ -269,11 +269,11 @@ Rujukan: PRD 25, 26.4.
 
 - [x] 6.1 — `doctor.ts` (prasyarat, login, koneksi, RLS, grant RPC, health) — PRD 25.6
 - [x] 6.2 — `setup.ts` target production (alur 25.3, idempoten) — PRD 25.3, 25.5, FR-55, S-19
-- [~] 6.3 — `setup.ts --target local` (secret Edge Functions tersedia sebelum supabase start, migrasi, health, bootstrap SA) — PRD 25.3, FR-55, S-19
+- [x] 6.3 — `setup.ts --target local` (secret Edge Functions tersedia sebelum supabase start, migrasi, health, bootstrap SA) — PRD 25.3, FR-55, S-19
 - [x] 6.4 — `release.ts` (urutan 26.4, stop bila gagal) — PRD 26.4, FR-55, S-20
 - [x] 6.5 — `seed-demo.ts` (tolak non-local, kredensial di `.local/`) — PRD 25.7
 - [x] 6.6 — Guard target eksplisit pada script yang menyentuh production — AGENTS 5, PRD 25.5
-- [~] 6.7 — Password database Supabase opsional saat `setup`; input dikelola CLI, dapat dikosongkan, dan hanya disimpan di native credentials storage jika pengguna memilih mengisinya — FR-55, S-19, S-20
+- [x] 6.7 — Password database Supabase opsional saat `setup`; input dikelola CLI, dapat dikosongkan, dan hanya disimpan di native credentials storage jika pengguna memilih mengisinya — FR-55, S-19, S-20
 
 ---
 
@@ -285,8 +285,8 @@ Rujukan: PRD 27, AGENTS 10.
 - [x] 7.2 — Unit Edge (Deno test): hashing, validasi, constant-time, sesi — PRD 27.1
 - [x] 7.3 — Integration API (Deno test vs Supabase local): tiap endpoint tiap role — PRD 27.1
 - [x] 7.4 — pgTAP (lihat Fase 1.6) — PRD 27.1
-- [~] 7.5 — E2E Playwright alur Bagian 19 — PRD 27.1, 19
-- [~] 7.6 — Tes setup idempotensi `setup --target local`, file secret Edge Functions, dan readiness — PRD 27.2 S-19
+- [x] 7.5 — E2E Playwright alur Bagian 19 — PRD 27.1, 19
+- [x] 7.6 — Tes setup idempotensi `setup --target local`, file secret Edge Functions, dan readiness — PRD 27.2 S-19
 - [x] 7.7 — Tes konsistensi pesan `messages.ts` server vs UI vs PRD — AGENTS 10.3
 - [x] 7.8 — Tes ambang waktu 60 detik & 15 menit dengan clock dapat diatur — AGENTS 10.1
 - [x] 7.9 — RBAC: tiap endpoint untuk tiap role tak diizinkan — AGENTS 10.2, S-17
@@ -330,7 +330,7 @@ Rujukan: PRD 27.3.
 ### 10. Checklist Produksi (PRD 26.7)
 
 - [x] 10.9 — `pnpm doctor` lulus — PRD 26.7
-- [x] 10.10 — Seluruh pengujian CI lulus — PRD 26.7
+- [!] 10.10 — Seluruh pengujian CI lulus — PRD 26.7 (terblokir: dependency audit masih menemukan kerentanan high/critical)
 - [x] 10.11 — Migrasi diterapkan & diuji di local — PRD 26.7
 - [x] 10.12 — RLS aktif seluruh tabel; tak ada RPC anon/authenticated — PRD 26.7
 - [ ] 10.13 — Header keamanan terlihat di production — PRD 26.7
@@ -511,3 +511,5 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-28 | 7.5, 6.3, 7.6 | PRD 25.3–25.4, FR-55, S-19; FR-01, FR-06, FR-07, FR-22, FR-23, FR-29, FR-30, FR-34, FR-36; S-01, S-04, S-09, S-10, S-11; PRD 27.2–27.4 | docs/optional-supabase-db-password | Tes parser env ditambahkan; CI #37 dijalankan ulang, hasil menunggu | CI #35 menunjukkan Playwright web server tidak menerima SUPABASE_ANON_KEY karena setup menulis `.env.local` di root sedangkan Next dijalankan dari `apps/web`. Ditambahkan helper pemuatan env root, tes unit untuk precedence/absent file, dan env forwarding ke Playwright webServer. E2E sebelumnya 4 passed, 13 failed akibat ENV_MISSING dan login 500; belum menandai E2E selesai. |
 
 | 2026-11-28 | 7.5, CI typecheck | PRD 27.2–27.4, FR-55, S-19 | docs/optional-supabase-db-password | CI #39: 21 unit UI + 13 tes setup lulus; typecheck gagal pada `ProcessEnv` yang dapat berisi `undefined`; helper diperbaiki untuk hanya meneruskan string; CI #41 menunggu | Perbaikan tipe dilakukan setelah hasil CI, dengan tes tambahan untuk nilai undefined. E2E belum tervalidasi pada commit perbaikan akhir. |
+
+| 2026-11-28 | 6.3, 6.7, 7.5, 7.6, 10.10 | PRD 25.3–25.5, 27.2–27.4; FR-55; S-01, S-04, S-09, S-10, S-11, S-19, S-20 | docs/optional-supabase-db-password (CI #42) | CI #42: lint/format, typecheck, unit UI 21/21, tes setup 14/14, Deno 32/32, pgTAP, Integration API, E2E Playwright 17/17, dan build web lulus. Dependency audit gagal: 59 temuan (7 low, 29 moderate, 22 high, 1 critical). | Setup lokal dan prompt password opsional terverifikasi; E2E alur PRD Bagian 19 kembali lulus. Item 10.10 tetap terblokir sampai audit lockfile bebas kerentanan high/critical sesuai PRD 27.3. Tidak ada bypass audit, perubahan production, atau merge PR. |
