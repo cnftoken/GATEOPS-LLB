@@ -1,7 +1,7 @@
 // Wizard setup (PRD 25.2/25.3). Idempoten. Tidak mencetak secret.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { createInterface } from "node:readline/promises";
 import {
   apiFetch,
@@ -13,6 +13,7 @@ import {
   writeEnvLocal,
 } from "./_lib";
 import { runSupabaseLink } from "./setup-production";
+import { waitForLocalFunctionsHealth } from "./local-functions";
 
 function readLocalSetup(): Record<string, string> {
   const path = ".local/setup.json";
@@ -93,6 +94,21 @@ async function setupLocal(): Promise<void> {
     run("supabase db reset");
   } else {
     log("Langkah: migrasi sudah sesuai (db reset dilewati)");
+  }
+
+  mkdirSync(".setup", { recursive: true });
+  try {
+    await waitForLocalFunctionsHealth(fetch, async () => {}, 1);
+    log("Edge Functions lokal sudah berjalan.");
+  } catch {
+    const logFd = openSync(".setup/functions.log", "a");
+    const child = spawn("supabase", ["functions", "serve", "--env-file", ".env.local"], {
+      detached: true,
+      stdio: ["ignore", logFd, logFd],
+    });
+    child.unref();
+    log("Menunggu health Edge Functions lokal.");
+    await waitForLocalFunctionsHealth();
   }
 
   const setup = readLocalSetup();
