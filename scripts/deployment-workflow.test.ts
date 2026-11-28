@@ -30,11 +30,12 @@ test("FR-55/S-20: workflow uses required secrets only", () => {
 test(
   "FR-55/S-20: database password is passed without an interactive prompt",
   () => {
-  assert.ok(
-    workflow.includes('supabase link --project-ref "$SUPABASE_PROJECT_REF"'),
-  );
-  assert.ok(workflow.includes('--password "$SUPABASE_DB_PASSWORD"'));
-});
+    assert.ok(
+      workflow.includes('supabase link --project-ref "$SUPABASE_PROJECT_REF"'),
+    );
+    assert.ok(workflow.includes('--password "$SUPABASE_DB_PASSWORD"'));
+  },
+);
 
 test("FR-55/S-20: migrations run before Edge Functions deployment", () => {
   const migration = workflow.indexOf("supabase db push");
@@ -45,11 +46,12 @@ test("FR-55/S-20: migrations run before Edge Functions deployment", () => {
 test(
   "FR-55/S-20: internal secret is set before Edge Functions deployment",
   () => {
-  const secret = workflow.indexOf("supabase secrets set");
-  const functions = workflow.indexOf("supabase functions deploy");
-  assert.ok(secret >= 0 && functions > secret);
-  assert.match(workflow, /supabase secrets set --yes --project-ref/);
-});
+    const secret = workflow.indexOf("supabase secrets set");
+    const functions = workflow.indexOf("supabase functions deploy");
+    assert.ok(secret >= 0 && functions > secret);
+    assert.match(workflow, /supabase secrets set --yes --project-ref/);
+  },
+);
 
 test("FR-55/S-19: Vercel deployment does not require local CLI", () => {
   assert.match(deploymentGuide, /Root Directory.*apps\/web/);
@@ -63,28 +65,30 @@ test("FR-55/S-19: Vercel deployment does not require local CLI", () => {
 test(
   "FR-55/S-20: CI and production pin Supabase CLI to the repository version",
   () => {
-  for (const source of [workflow, ciWorkflow]) {
-    assert.match(source, /uses: supabase\/setup-cli@v3/);
-    assert.match(
-      source,
-      new RegExp(
-        "version: " +
-          packageJson.devDependencies.supabase.replaceAll(".", "\\."),
-      ),
-    );
-    assert.doesNotMatch(source, /version: latest/);
-  }
-});
+    for (const source of [workflow, ciWorkflow]) {
+      assert.match(source, /uses: supabase\/setup-cli@v3/);
+      assert.match(
+        source,
+        new RegExp(
+          "version: " +
+            packageJson.devDependencies.supabase.replaceAll(".", "\\."),
+        ),
+      );
+      assert.doesNotMatch(source, /version: latest/);
+    }
+  },
+);
 
 test(
   "FR-55/S-20: production hosted mutations are explicitly non-interactive",
   () => {
-  assert.match(
-    workflow,
-    /supabase db push --remote "\$SUPABASE_PROJECT_REF" --yes/,
-  );
-  assert.match(
-    workflow,
-    /supabase functions deploy --project-ref "\$SUPABASE_PROJECT_REF" --yes/,
-  );
-});
+    assert.match(
+      workflow,
+      /supabase db push --remote "\$SUPABASE_PROJECT_REF" --yes/,
+    );
+    assert.match(
+      workflow,
+      /supabase functions deploy --project-ref "\$SUPABASE_PROJECT_REF" --yes/,
+    );
+  },
+);
