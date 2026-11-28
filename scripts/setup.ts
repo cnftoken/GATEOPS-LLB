@@ -148,13 +148,13 @@ async function setupProduction(argv: string[]): Promise<void> {
   run("vercel login", { allowFail: true });
 
   log("Langkah 2/14 input wizard");
-  const ref = await ask("Supabase project ref: ");
-  const vercelProject = await ask("Nama project Vercel: ");
+  const ref = (await ask("Supabase project ref: ")).trim();
+  const vercelProject = (await ask("Nama project Vercel: ")).trim();
   const databasePassword = await ask("Password database Supabase (tidak disimpan): ", true);
-  if (!ref.trim()) throw new Error("Supabase project ref wajib diisi.");
-  if (!vercelProject.trim()) throw new Error("Nama project Vercel wajib diisi.");
+  if (!ref) throw new Error("Supabase project ref wajib diisi.");
+  if (!vercelProject) throw new Error("Nama project Vercel wajib diisi.");
   if (!databasePassword.trim()) throw new Error("Password database Supabase wajib diisi.");
-  writeEnvLocal({ SUPABASE_PROJECT_REF: ref.trim() });
+  writeEnvLocal({ SUPABASE_PROJECT_REF: ref });
   const saUsername = await ask("Username Super Admin: ");
   const saPassword = await ask("Password Super Admin: ", true);
   const saRepeat = await ask("Ulangi password Super Admin: ", true);
