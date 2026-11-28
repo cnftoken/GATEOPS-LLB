@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Print canonical Prettier output for deployment contract test
+        run: pnpm exec prettier scripts/deployment-workflow.test.ts
       - run: pnpm lint
 
   typecheck:
