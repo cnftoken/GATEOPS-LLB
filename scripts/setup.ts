@@ -186,7 +186,7 @@ async function setupProduction(argv: string[]): Promise<void> {
   const anonKey = env.SUPABASE_ANON_KEY ?? "";
   const webUrl = `https://${vercelProject}.vercel.app`;
   for (const [name, value] of [
-    ["SUPABASE_FUNCTIONS_URL", `${ref}.supabase.co/functions/v1`],
+    ["SUPABASE_FUNCTIONS_URL", `https://${ref}.supabase.co/functions/v1`],
     ["SUPABASE_ANON_KEY", anonKey],
     ["GATEOPS_INTERNAL_SECRET", secret],
   ] as const) {

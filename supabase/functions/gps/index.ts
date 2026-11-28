@@ -9,6 +9,8 @@ import { callRpc } from "../_shared/db.ts";
 
 function parseCoordinate(value: unknown, min: number, max: number): number {
   if (value === null || value === undefined) throw new ApiError("VALIDATION_FAILED");
+  if (typeof value !== "number" && typeof value !== "string")
+    throw new ApiError("VALIDATION_FAILED");
   if (typeof value === "string" && value.trim() === "") throw new ApiError("VALIDATION_FAILED");
   const n = Number(value);
   if (!Number.isFinite(n) || n < min || n > max) throw new ApiError("VALIDATION_FAILED");

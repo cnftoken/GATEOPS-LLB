@@ -25,7 +25,9 @@ async function list(
   const search = params.get("search")?.trim();
   let query = ctx.supabase
     .from("accounts")
-    .select("id, nama, username, role, nrp, status, created_at", { count: "exact" });
+    .select("id, nama, username, role, nrp, pangkat, jabatan, status, created_at", {
+      count: "exact",
+    });
   if (role) query = query.eq("role", role);
   if (status) query = query.eq("status", status);
   if (search) {

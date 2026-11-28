@@ -17,7 +17,7 @@ function main(): void {
   log(`Rilis ${target} dimulai.`);
 
   log("1/7 doctor");
-  run("pnpm doctor");
+  run(target === "local" ? "pnpm doctor -- --target local" : "pnpm doctor");
 
   log("2/7 quality gates");
   run("pnpm lint");

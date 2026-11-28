@@ -1,6 +1,6 @@
 -- GATEOPS pgTAP P1: GPS DENIED mempertahankan koordinat (FR-39), SA terakhir.
 begin;
-select plan(4);
+select plan(6);
 
 insert into public.accounts (role, username, password_hash, nama)
 values ('SUPER_ADMIN', 'p1_sa', 'x', 'Admin P1');
@@ -44,6 +44,26 @@ select throws_ok(
   'P0001',
   'LAST_SUPER_ADMIN',
   'SA aktif terakhir tidak dapat dinonaktifkan'
+);
+
+select is(
+  (select count(*)::integer from public.audit_logs
+   where action = 'ACCOUNT_UPDATED'
+     and object_id = (select id::text from public.accounts where username = 'p1_sa')),
+  0,
+  'update tanpa perubahan tidak menulis audit'
+);
+select public.update_account(
+  (select id from public.accounts where username = 'p1_kmd'),
+  (select id from public.accounts where username = 'p1_sa'),
+  'Admin P1 Baru', null, null, 'p1_sa'
+);
+select is(
+  (select metadata->'fields' from public.audit_logs
+   where action = 'ACCOUNT_UPDATED'
+     and object_id = (select id::text from public.accounts where username = 'p1_sa')),
+  '["nama"]'::jsonb,
+  'audit hanya mencatat field yang berubah'
 );
 
 select finish();

@@ -26,6 +26,8 @@ interface AccountRow {
   username: string;
   role: string;
   nrp: string | null;
+  pangkat: string | null;
+  jabatan: string | null;
   status: string;
 }
 
@@ -313,8 +315,8 @@ function AkunContent() {
                         role: a.role,
                         nrp: a.nrp ?? "",
                         nama: a.nama,
-                        pangkat: "",
-                        jabatan: "",
+                        pangkat: a.pangkat ?? "",
+                        jabatan: a.jabatan ?? "",
                         username: a.username,
                         password: "",
                       })
