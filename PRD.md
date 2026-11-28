@@ -1659,7 +1659,7 @@ Kolom Verifikasi menunjuk skenario di Bagian 27.2.
 | FR-52 | Audit dicatat dalam transaksi yang sama dengan perubahan bisnis | S-08 |
 | FR-53 | Audit bersifat append-only | S-18 |
 | FR-54 | Tidak ada notifikasi transaksi keluar dan kembali | S-03, S-06 |
-| FR-55 | Instalasi, konfigurasi, migrasi, dan deployment berjalan melalui perintah otomatis | S-19, S-20 |
+| FR-55 | Deployment web tersedia melalui integrasi Vercel dan migrasi/Edge Functions melalui workflow GitHub manual opsional; perintah CLI tetap opsional | S-19, S-20 |
 
 ---
 
@@ -1818,11 +1818,13 @@ Untuk target local, langkah 5 sampai 12 diganti dengan: membuat `supabase/functi
 
 | Nama | Lokasi | Keterangan |
 |---|---|---|
-| SUPABASE_PROJECT_REF | Lokal (wizard) | Project ref production |
-| Password database Supabase | Opsional; hanya native credentials storage milik Supabase CLI jika pengguna memasukkannya | Ditawarkan langsung oleh prompt `supabase link`; boleh dikosongkan. Wizard tidak menyimpan atau meneruskan password. Jika dimasukkan, penyimpanan mengikuti perilaku Supabase CLI dan ketersediaan native credentials storage. |
+| SUPABASE_PROJECT_REF | GitHub Actions secret dan opsional lokal | Project ref production Supabase |
+| SUPABASE_ACCESS_TOKEN | GitHub Actions secret | Token akses Supabase untuk workflow deployment manual. Tidak digunakan oleh aplikasi runtime. |
+| SUPABASE_DB_PASSWORD | GitHub Actions secret | Password database production untuk Supabase CLI. Hanya digunakan oleh workflow deployment Supabase. |
+| Password database Supabase (lokal) | Opsional; native credentials storage Supabase CLI | Hanya digunakan jika developer memilih alur CLI lokal. |
 | SUPABASE_FUNCTIONS_URL | Vercel env, `.env.local` | URL `https://<ref>.supabase.co/functions/v1` atau localhost untuk local |
 | SUPABASE_ANON_KEY | Vercel env, `.env.local` | Hanya untuk header Authorization BFF. Bukan secret, tetapi tidak dikirim ke browser |
-| GATEOPS_INTERNAL_SECRET | Vercel env, Supabase secret, `.env.local`, `supabase/functions/.env` (local saja) | Secret antara BFF dan Edge Functions. Untuk local, nilai pada `supabase/functions/.env` dibaca saat `supabase start`; file ini diabaikan Git. |
+| GATEOPS_INTERNAL_SECRET | Vercel env, Supabase secret, GitHub Actions secret, `.env.local`, `supabase/functions/.env` (local saja) | Secret antara BFF dan Edge Functions. GitHub Actions secret digunakan untuk mengatur Supabase Functions; file lokal diabaikan Git. |
 | SUPABASE_SERVICE_ROLE_KEY | Otomatis di Edge Functions | Disediakan oleh Supabase. DILARANG di Vercel |
 | VERCEL_PROJECT_ID | `.vercel/project.json` | Dibuat oleh `vercel link` |
 
@@ -1942,8 +1944,8 @@ Urutan ini memastikan skema baru tersedia sebelum fungsi dan web baru aktif.
 
 Seluruh butir WAJIB terpenuhi sebelum rilis pertama dan setiap rilis berikutnya yang menyentuh skema atau keamanan:
 
-- [ ] `pnpm doctor` lulus.
 - [ ] Seluruh pengujian di CI lulus.
+- [ ] Jika perubahan menyentuh database atau Edge Functions, workflow `Deploy Supabase Production` berhasil.
 - [ ] Migrasi diterapkan dan diuji di local.
 - [ ] RLS aktif pada seluruh tabel.
 - [ ] Tidak ada RPC yang dapat dieksekusi anon atau authenticated.
@@ -1991,8 +1993,8 @@ Seluruh butir WAJIB terpenuhi sebelum rilis pertama dan setiap rilis berikutnya 
 | S-16 | Riwayat dengan filter dan paginasi, laporan PDF dengan batas periode dan baris | API, E2E |
 | S-17 | Komandan tidak dapat mengakses rute dan endpoint pengelolaan, Personel tidak dapat melihat data orang lain, Persit tidak dapat melihat GPS | API, E2E |
 | S-18 | Audit tidak dapat diubah atau dihapus, RLS menolak akses anon dan authenticated | Database |
-| S-19 | `pnpm setup -- --target local` pada environment kosong berhasil, dan dijalankan ulang tanpa perubahan | Setup |
-| S-20 | `pnpm release` pada environment local menjalankan seluruh urutan dan health check | Setup |
+| S-19 | Repository dapat di-import ke Vercel, environment production dikonfigurasi satu kali, dan deployment web berhasil tanpa perintah CLI lokal | Deployment |
+| S-20 | Workflow GitHub Actions `Deploy Supabase Production` dapat dijalankan manual pada `main`, menerapkan migrasi dan Edge Functions, serta tidak berjalan otomatis pada push/merge | Deployment |
 
 ### 27.3 Gerbang CI
 
