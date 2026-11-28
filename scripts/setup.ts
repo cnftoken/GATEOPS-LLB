@@ -12,7 +12,7 @@ import {
   run,
   writeEnvLocal,
 } from "./_lib";
-import { runSupabaseLink } from "./setup-production";
+import { getSupabaseAnonKey, runSupabaseLink } from "./setup-production";
 import { waitForLocalFunctionsHealth } from "./local-functions";
 import { writeLocalFunctionsEnv } from "./local-functions-env";
 
@@ -173,6 +173,9 @@ async function setupProduction(argv: string[]): Promise<void> {
 
   log("Langkah 5/14 supabase link");
   runSupabaseLink(ref);
+  log("Mengambil legacy anon key untuk autentikasi Edge Function.");
+  const anonKey = getSupabaseAnonKey(ref);
+  writeEnvLocal({ SUPABASE_ANON_KEY: anonKey });
 
   log("Langkah 6/14 migrasi");
   run("supabase db push");
@@ -191,7 +194,7 @@ async function setupProduction(argv: string[]): Promise<void> {
 
   log("Langkah 11/14 Vercel link dan env production");
   run(`vercel link --project ${vercelProject}`);
-  const anonKey = env.SUPABASE_ANON_KEY ?? "";
+
   const webUrl = `https://${vercelProject}.vercel.app`;
   for (const [name, value] of [
     ["SUPABASE_FUNCTIONS_URL", `https://${ref}.supabase.co/functions/v1`],
