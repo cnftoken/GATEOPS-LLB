@@ -23,7 +23,7 @@
     "setup": "tsx scripts/setup.ts",
     "release": "tsx scripts/release.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
-    "test:setup": "node --import tsx --test scripts/setup-production.test.ts"
+    "test:setup": "node --import tsx --test scripts/*.test.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.7",
