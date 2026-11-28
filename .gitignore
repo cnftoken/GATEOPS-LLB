@@ -21,6 +21,7 @@ dist/
 # Supabase local
 supabase/.temp/
 supabase/.branches/
+supabase/functions/.env
 
 # Test and coverage output
 coverage/

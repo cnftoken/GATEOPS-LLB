@@ -1794,10 +1794,10 @@ Pembuatan project Supabase production dilakukan sekali oleh Owner di dashboard S
 Wizard menjalankan langkah berikut secara berurutan. Setiap langkah memeriksa kondisi saat ini dan melewatinya jika sudah sesuai.
 
 1. Preflight: menjalankan `doctor`. Jika Supabase CLI atau Vercel CLI belum login, wizard menjalankan login interaktif.
-2. Input: wizard meminta project ref Supabase, nama project Vercel, password database Supabase (tidak disimpan), username Super Admin awal, dan password Super Admin awal yang diisi dua kali.
+2. Input: wizard meminta project ref Supabase, nama project Vercel, username Super Admin awal, dan password Super Admin awal yang diisi dua kali. Password database tidak diminta atau disimpan oleh wizard; Supabase CLI menawarkannya secara interaktif pada langkah koneksi dan pengguna boleh mengosongkannya.
 3. Secret: wizard membuat `GATEOPS_INTERNAL_SECRET` acak 32 byte base64url jika belum ada di `.env.local`.
 4. Dependensi: `pnpm install --frozen-lockfile`.
-5. Koneksi: `supabase link --project-ref <ref>`.
+5. Koneksi: `supabase link --project-ref <ref>`. Supabase CLI menampilkan prompt password database opsional. Jika pengguna memasukkan password, CLI dapat menyimpannya di native credentials storage yang tersedia. Jika pengguna mengosongkannya, proses link tetap berjalan tanpa validasi password database; perintah database berikutnya dapat meminta kredensial saat diperlukan. Wizard tidak mengirim password sebagai argumen, environment variable, atau input yang disimpan.
 6. Migrasi: `supabase db push` untuk seluruh migrasi yang belum diterapkan.
 7. Ekstensi: migrasi pertama mengaktifkan pgTAP dan pg_cron. Jika belum aktif, migrasi mengaktifkannya.
 8. Edge Functions: `supabase functions deploy` untuk seluruh fungsi sesuai `config.toml`.
@@ -1808,21 +1808,21 @@ Wizard menjalankan langkah berikut secara berurutan. Setiap langkah memeriksa ko
 13. Smoke test: `GET /api/v1/health`, login Super Admin, `GET /api/v1/auth/me`, dan logout. Setiap langkah wajib lulus.
 14. Ringkasan: wizard menampilkan URL production dan status setiap langkah. Wizard tidak menampilkan secret.
 
-Untuk target local, langkah 5 sampai 12 diganti dengan: `supabase start`, `supabase db reset` (menerapkan migrasi dan seed kosong), `supabase functions serve`, dan pembuatan `.env.local` untuk web yang mengarah ke localhost. Langkah 10 tetap dijalankan agar Super Admin lokal tersedia.
+Untuk target local, langkah 5 sampai 12 diganti dengan: membuat `supabase/functions/.env` berisi `GATEOPS_INTERNAL_SECRET` lokal sebelum stack dimulai, `supabase start`, `supabase db reset` (menerapkan migrasi dan seed kosong), memastikan Edge Functions sehat, dan pembuatan `.env.local` untuk web yang mengarah ke localhost. File `supabase/functions/.env` diperlukan karena itulah sumber secret lokal yang dibaca Edge Functions saat `supabase start`; file ini tidak boleh masuk Git. Langkah 10 tetap dijalankan agar Super Admin lokal tersedia.
 
 ### 25.4 Variabel Konfigurasi
 
 | Nama | Lokasi | Keterangan |
 |---|---|---|
 | SUPABASE_PROJECT_REF | Lokal (wizard) | Project ref production |
-| SUPABASE_DB_PASSWORD | Tidak disimpan | Diminta saat setup, digunakan untuk link |
+| Password database Supabase | Opsional; hanya native credentials storage milik Supabase CLI jika pengguna memasukkannya | Ditawarkan langsung oleh prompt `supabase link`; boleh dikosongkan. Wizard tidak menyimpan atau meneruskan password. Jika dimasukkan, penyimpanan mengikuti perilaku Supabase CLI dan ketersediaan native credentials storage. |
 | SUPABASE_FUNCTIONS_URL | Vercel env, `.env.local` | URL `https://<ref>.supabase.co/functions/v1` atau localhost untuk local |
 | SUPABASE_ANON_KEY | Vercel env, `.env.local` | Hanya untuk header Authorization BFF. Bukan secret, tetapi tidak dikirim ke browser |
-| GATEOPS_INTERNAL_SECRET | Vercel env, Supabase secret, `.env.local` | Secret antara BFF dan Edge Functions |
+| GATEOPS_INTERNAL_SECRET | Vercel env, Supabase secret, `.env.local`, `supabase/functions/.env` (local saja) | Secret antara BFF dan Edge Functions. Untuk local, nilai pada `supabase/functions/.env` dibaca saat `supabase start`; file ini diabaikan Git. |
 | SUPABASE_SERVICE_ROLE_KEY | Otomatis di Edge Functions | Disediakan oleh Supabase. DILARANG di Vercel |
 | VERCEL_PROJECT_ID | `.vercel/project.json` | Dibuat oleh `vercel link` |
 
-Berkas `.env.example` berisi nama variabel tanpa nilai. Berkas `.env.local` dan `.vercel/` masuk `.gitignore`.
+Berkas `.env.example` berisi nama variabel tanpa nilai. Berkas `.env.local`, `supabase/functions/.env`, dan `.vercel/` masuk `.gitignore`.
 
 ### 25.5 Prinsip Setup
 

@@ -269,10 +269,11 @@ Rujukan: PRD 25, 26.4.
 
 - [x] 6.1 — `doctor.ts` (prasyarat, login, koneksi, RLS, grant RPC, health) — PRD 25.6
 - [x] 6.2 — `setup.ts` target production (alur 25.3, idempoten) — PRD 25.3, 25.5, FR-55, S-19
-- [x] 6.3 — `setup.ts --target local` (supabase start/reset, functions serve, bootstrap SA) — PRD 25.3, S-19
+- [x] 6.3 — `setup.ts --target local` (secret Edge Functions tersedia sebelum supabase start, migrasi, health, bootstrap SA) — PRD 25.3, FR-55, S-19
 - [x] 6.4 — `release.ts` (urutan 26.4, stop bila gagal) — PRD 26.4, FR-55, S-20
 - [x] 6.5 — `seed-demo.ts` (tolak non-local, kredensial di `.local/`) — PRD 25.7
 - [x] 6.6 — Guard target eksplisit pada script yang menyentuh production — AGENTS 5, PRD 25.5
+- [x] 6.7 — Password database Supabase opsional saat `setup`; input dikelola CLI, dapat dikosongkan, dan hanya disimpan di native credentials storage jika pengguna memilih mengisinya — FR-55, S-19, S-20
 
 ---
 
@@ -285,7 +286,7 @@ Rujukan: PRD 27, AGENTS 10.
 - [x] 7.3 — Integration API (Deno test vs Supabase local): tiap endpoint tiap role — PRD 27.1
 - [x] 7.4 — pgTAP (lihat Fase 1.6) — PRD 27.1
 - [x] 7.5 — E2E Playwright alur Bagian 19 — PRD 27.1, 19
-- [x] 7.6 — Tes setup idempotensi `setup --target local` — PRD 27.2 S-19
+- [x] 7.6 — Tes setup idempotensi `setup --target local`, file secret Edge Functions, dan readiness — PRD 27.2 S-19
 - [x] 7.7 — Tes konsistensi pesan `messages.ts` server vs UI vs PRD — AGENTS 10.3
 - [x] 7.8 — Tes ambang waktu 60 detik & 15 menit dengan clock dapat diatur — AGENTS 10.1
 - [x] 7.9 — RBAC: tiap endpoint untuk tiap role tak diizinkan — AGENTS 10.2, S-17
@@ -329,7 +330,7 @@ Rujukan: PRD 27.3.
 ### 10. Checklist Produksi (PRD 26.7)
 
 - [x] 10.9 — `pnpm doctor` lulus — PRD 26.7
-- [x] 10.10 — Seluruh pengujian CI lulus — PRD 26.7
+- [!] 10.10 — Seluruh pengujian CI lulus — PRD 26.7 (terblokir: dependency audit masih menemukan kerentanan high/critical)
 - [x] 10.11 — Migrasi diterapkan & diuji di local — PRD 26.7
 - [x] 10.12 — RLS aktif seluruh tabel; tak ada RPC anon/authenticated — PRD 26.7
 - [ ] 10.13 — Header keamanan terlihat di production — PRD 26.7
@@ -500,3 +501,23 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-27 | PRD 7.4.3 (klarifikasi Owner) | PRD 7.4.3, FR-05 | - | `integration.check` PASS (kunci lewat -> gagal baru 401, login benar 200) | `failed_login_count` dan `locked_until` direset saat masa kunci lewat; kegagalan baru dihitung dari 0. PRD 7.4.3 diperbarui sesuai keputusan Owner. |
 | 2026-11-27 | gap/bug lanjutan | PRD 16.3, 16.5, 25.3.11, 25.5.1, 11.2, 7.4.3 | - | `pnpm test:db` 36/36; `deno task check`; `integration.check` PASS; `pnpm lint`/`typecheck`/`build` sukses; E2E 17/17 (1 skipped) | form ubah akun kini menerima pangkat/jabatan dari server, audit `ACCOUNT_UPDATED` hanya mencatat field berubah, URL production setup memakai `https://`, koordinat non-number/string kosong ditolak, release local memakai doctor target local, setup local idempoten (db reset dilewati) |
 | 2026-11-28 | validasi laporan & filter akun | PRD 22.5, 21.5 | - | `integration.check` PASS; `pnpm lint`/`typecheck` sukses; `deno task check` sukses | tanggal laporan tidak valid/terbalik ditolak 400, filter role akun reset ke halaman 1, pencarian audit di-escape |
+
+| 2026-11-28 | 6.7 (password database opsional) | PRD 25.3–25.5, FR-55, S-19, S-20 | docs/optional-supabase-db-password | CI awal gagal sebelum tes: pnpm/action-setup versi ganda dan pnpm tidak terpasang pada job pgTAP | Prompt password dialihkan ke Supabase CLI; password tidak melewati wizard. Workflow CI diperbaiki agar memakai pnpm 9.15.9 dan memasang pnpm pada job pgTAP; menunggu eksekusi CI ulang |
+
+| 2026-11-28 | 6.3, 7.6, CI integration/E2E | PRD 25.3 local, FR-55, S-19, 27.3 | docs/optional-supabase-db-password | Tes readiness ditambahkan; menunggu CI untuk bukti runtime | Ganti pemanggilan `pnpm setup` menjadi `pnpm run setup`; wizard lokal memastikan Edge Functions sehat sebelum bootstrap; workflow tidak memulai server duplikat; tes retry/readiness dan dokumentasi setup lokal ditambahkan |
+
+| 2026-11-28 | 6.3, 7.6, CI integration/E2E | PRD 25.3–25.5, FR-55, S-19, 27.3 | docs/optional-supabase-db-password | Tes helper env ditambahkan; menunggu CI ulang | Log CI #25 membuktikan health publik merespons 200 tetapi bootstrap mendapat 401 karena secret tidak dimuat Edge Functions. Setup kini menulis secret ke `supabase/functions/.env` sebelum stack dimulai; file di-ignore Git; CI tidak memulai Supabase sebelum wizard. |
+
+| 2026-11-28 | 7.5, 6.3, 7.6 | PRD 25.3–25.4, FR-55, S-19; FR-01, FR-06, FR-07, FR-22, FR-23, FR-29, FR-30, FR-34, FR-36; S-01, S-04, S-09, S-10, S-11; PRD 27.2–27.4 | docs/optional-supabase-db-password | Tes parser env ditambahkan; CI #37 dijalankan ulang, hasil menunggu | CI #35 menunjukkan Playwright web server tidak menerima SUPABASE_ANON_KEY karena setup menulis `.env.local` di root sedangkan Next dijalankan dari `apps/web`. Ditambahkan helper pemuatan env root, tes unit untuk precedence/absent file, dan env forwarding ke Playwright webServer. E2E sebelumnya 4 passed, 13 failed akibat ENV_MISSING dan login 500; belum menandai E2E selesai. |
+
+| 2026-11-28 | 7.5, CI typecheck | PRD 27.2–27.4, FR-55, S-19 | docs/optional-supabase-db-password | CI #39: 21 unit UI + 13 tes setup lulus; typecheck gagal pada `ProcessEnv` yang dapat berisi `undefined`; helper diperbaiki untuk hanya meneruskan string; CI #41 menunggu | Perbaikan tipe dilakukan setelah hasil CI, dengan tes tambahan untuk nilai undefined. E2E belum tervalidasi pada commit perbaikan akhir. |
+
+| 2026-11-28 | 6.3, 6.7, 7.5, 7.6, 10.10 | PRD 25.3–25.5, 27.2–27.4; FR-55; S-01, S-04, S-09, S-10, S-11, S-19, S-20 | docs/optional-supabase-db-password (CI #42) | CI #42: lint/format, typecheck, unit UI 21/21, tes setup 14/14, Deno 32/32, pgTAP, Integration API, E2E Playwright 17/17, dan build web lulus. Dependency audit gagal: 59 temuan (7 low, 29 moderate, 22 high, 1 critical). | Setup lokal dan prompt password opsional terverifikasi; E2E alur PRD Bagian 19 kembali lulus. Item 10.10 tetap terblokir sampai audit lockfile bebas kerentanan high/critical sesuai PRD 27.3. Tidak ada bypass audit, perubahan production, atau merge PR. |
+
+
+| 2026-11-28 | verifikasi ulang gerbang CI | PRD 27.3–27.4; FR-55; S-19, S-20 | CI #44, head `8a21ecab856404d1b440af7cb64a771dece7234f` | Lint/format, typecheck, unit UI/Edge, pgTAP, Integration API, E2E Playwright, dan build web: sukses. Dependency audit: gagal, 59 temuan (7 low, 29 moderate, 22 high, 1 critical). | Seluruh job selain audit selesai sukses; E2E dan Integration API kini terkonfirmasi lulus. Item 10.10 tetap `[!]` karena PRD 27.3 mewajibkan audit gagal pada temuan high/critical. Tidak ada bypass, merge, atau deployment production. |
+| 2026-11-28 | triase dependency audit | PRD 4.3, 27.3; FR-55 (setup tooling) | docs/optional-supabase-db-password | CI #43: seluruh job aplikasi lulus (lint/format, unit, typecheck, pgTAP, Integration API, E2E, build); audit tetap gagal dengan 59 temuan (7 low, 29 moderate, 22 high, 1 critical). Log audit mengidentifikasi dependency transitif Vercel CLI 67.0.0: `@vercel/container` membawa `tar@7.5.11`; `@vercel/python-analysis` membawa `minimatch@10.1.1`; `@vercel/node@33.0.0` membawa `undici@5.28.4`; `@fastify/busboy@2.1.1`; `@vercel/cli-config` membawa `zod@4.1.11`. | Tidak dilakukan override/upgrade spekulatif. `undici` terikat major 5 oleh `@vercel/node`, sementara advisori saat ini memerlukan >=6.29.1; `tar` juga dipatok oleh `@vercel/container`. Vercel CLI 68.0.0 baru terbit dan belum ada bukti dari manifest/lockfile bahwa semua rantai rentan telah diperbaiki. Lingkungan eksekusi ini tidak dapat mengakses registry untuk regenerasi lockfile dan menjalankan tes kompatibilitas; karenanya audit tetap blocker, tanpa bypass. |
+
+| 2026-11-28 | verifikasi ulang gerbang CI | PRD 27.3–27.4; FR-55; S-19, S-20 | CI #45, head `54f8fba2633913a75483788266c8c55d68070424` | Lint/format, typecheck, unit UI/Edge, pgTAP, Integration API, E2E Playwright, dan build web: sukses. Dependency audit: gagal, 59 temuan (7 low, 29 moderate, 22 high, 1 critical). | CI #45 mengonfirmasi ulang seluruh job aplikasi lulus; satu-satunya blocker tetap audit dependency. Log mengonfirmasi rantai rentan dari `vercel@67.0.0`, termasuk `tar@7.5.11`, `undici@5.28.4`, `@fastify/busboy@2.1.1`, dan `zod@4.1.11`. Item 10.10 tetap `[!]`; tidak ada bypass, merge, atau deployment production. |
+
+| 2026-11-28 | verifikasi ulang gerbang CI | PRD 27.3–27.4; FR-55; S-19, S-20 | CI #46, head `1cc46ae83dbf74ce7d485e06e0ab9d3c37e1c6bd` | 7/8 job lulus: lint/format, typecheck, pgTAP, unit UI/Edge, E2E Playwright, build web, Integration API. Dependency audit gagal dengan 59 temuan (7 low, 29 moderate, 22 high, 1 critical). | Hasil mengonfirmasi tidak ada regresi pada job aplikasi. Audit tetap memblokir sesuai PRD 27.3. Temuan transitif termasuk `tar@7.5.11`, `undici@5.28.4`, `@fastify/busboy@2.1.1`, `zod@4.1.11`, `js-yaml@4.1.1`, dan `smol-toml@1.5.2`. Tidak ada override/upgrade spekulatif, bypass, merge, atau deployment production. |
