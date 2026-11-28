@@ -1875,7 +1875,7 @@ Berkas `.env.example` berisi nama variabel tanpa nilai. Berkas `.env.local`, `su
 4. Environment production menggunakan satu project Supabase dan satu project Vercel.
 5. Branch `main` adalah production branch Vercel.
 6. Auto deployment dari push/merge ke `main` bersifat opsional dan dapat diaktifkan atau dinonaktifkan di pengaturan Vercel. Deployment manual dari dashboard Vercel tetap didukung.
-7. Preview deployment tidak boleh menggunakan Supabase production. Preview deployment boleh dinonaktifkan; jika diaktifkan, harus menggunakan konfigurasi non-production yang terisolasi.
+7. Preview deployment Vercel dinonaktifkan. Hanya deployment production dari branch `main` yang digunakan pada rilis ini.
 
 ### 26.2 Supabase
 
