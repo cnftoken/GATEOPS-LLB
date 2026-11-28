@@ -46,7 +46,7 @@ jobs:
 
       - name: Configure Edge Functions internal secret
         shell: bash
-        run: supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" "GATEOPS_INTERNAL_SECRET=$GATEOPS_INTERNAL_SECRET"
+        run: supabase secrets set --yes --project-ref "$SUPABASE_PROJECT_REF" "GATEOPS_INTERNAL_SECRET=$GATEOPS_INTERNAL_SECRET"
 
       - name: Apply database migrations
         shell: bash

@@ -38,6 +38,7 @@ test("FR-55/S-20: internal secret is set before Edge Functions deployment", () =
   const secret = workflow.indexOf("supabase secrets set");
   const functions = workflow.indexOf("supabase functions deploy");
   assert.ok(secret >= 0 && functions > secret);
+  assert.match(workflow, /supabase secrets set --yes --project-ref/);
 });
 
 test("FR-55/S-19: Vercel deployment does not require local CLI", () => {
