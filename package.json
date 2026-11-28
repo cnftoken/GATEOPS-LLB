@@ -16,13 +16,14 @@
     "lint:fix": "eslint --fix . && prettier --write .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p apps/web/tsconfig.json && tsc --noEmit -p scripts/tsconfig.json",
-    "test": "pnpm --filter @gateops/web test",
+    "test": "pnpm --filter @gateops/web test && pnpm test:setup",
     "test:db": "supabase db query \"create extension if not exists pgtap\" && supabase test db",
     "test:e2e": "pnpm --filter @gateops/web test:e2e",
     "doctor": "tsx scripts/doctor.ts",
     "setup": "tsx scripts/setup.ts",
     "release": "tsx scripts/release.ts",
-    "seed:demo": "tsx scripts/seed-demo.ts"
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "test:setup": "node --import tsx --test scripts/setup-production.test.ts"
   },
   "devDependencies": {
     "@eslint/eslintrc": "3.3.7",
