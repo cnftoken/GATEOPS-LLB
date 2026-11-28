@@ -273,6 +273,7 @@ Rujukan: PRD 25, 26.4.
 - [x] 6.4 — `release.ts` (urutan 26.4, stop bila gagal) — PRD 26.4, FR-55, S-20
 - [x] 6.5 — `seed-demo.ts` (tolak non-local, kredensial di `.local/`) — PRD 25.7
 - [x] 6.6 — Guard target eksplisit pada script yang menyentuh production — AGENTS 5, PRD 25.5
+- [~] 6.7 — Password database Supabase opsional saat `setup`; input dikelola CLI, dapat dikosongkan, dan hanya disimpan di native credentials storage jika pengguna memilih mengisinya — FR-55, S-19, S-20
 
 ---
 
