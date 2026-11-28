@@ -40,3 +40,13 @@ test("FR-55/S-19: missing root .env.local does not fail Playwright configuration
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("FR-55/S-19: omit undefined process environment values", () => {
+  const root = mkdtempSync(join(tmpdir(), "gateops-playwright-env-"));
+  try {
+    const env = loadPlaywrightEnv(root, { CI: "true", OPTIONAL_VALUE: undefined });
+    assert.deepEqual(env, { CI: "true" });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
