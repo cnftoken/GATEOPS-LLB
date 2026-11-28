@@ -18,8 +18,12 @@ function parseEnvFile(content: string): Record<string, string> {
 export function loadPlaywrightEnv(
   repositoryRoot: string,
   processEnv: NodeJS.ProcessEnv = process.env,
-): NodeJS.ProcessEnv {
+): Record<string, string> {
   const path = join(repositoryRoot, ".env.local");
   const fileEnv = existsSync(path) ? parseEnvFile(readFileSync(path, "utf8")) : {};
-  return { ...fileEnv, ...processEnv };
+  const inheritedEnv: Record<string, string> = {};
+  for (const [key, value] of Object.entries(processEnv)) {
+    if (typeof value === "string") inheritedEnv[key] = value;
+  }
+  return { ...fileEnv, ...inheritedEnv };
 }
