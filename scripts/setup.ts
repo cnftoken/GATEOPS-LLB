@@ -12,6 +12,7 @@ import {
   run,
   writeEnvLocal,
 } from "./_lib";
+import { runSupabaseLink } from "./setup-production";
 
 function readLocalSetup(): Record<string, string> {
   const path = ".local/setup.json";
@@ -140,8 +141,6 @@ async function smokeTest(baseInput: string, username: string, password: string):
 async function setupProduction(argv: string[]): Promise<void> {
   requireExplicitProduction(argv);
   const env = readEnvLocal();
-  const ref = process.env.SUPABASE_PROJECT_REF ?? env.SUPABASE_PROJECT_REF;
-  if (!ref) throw new Error("SUPABASE_PROJECT_REF belum diset.");
 
   log("Langkah 1/14 preflight doctor");
   run("pnpm doctor", { allowFail: true });
@@ -149,8 +148,11 @@ async function setupProduction(argv: string[]): Promise<void> {
   run("vercel login", { allowFail: true });
 
   log("Langkah 2/14 input wizard");
-  const vercelProject = await ask("Nama project Vercel: ");
-  await ask("Password database Supabase (tidak disimpan): ", true);
+  const ref = (await ask("Supabase project ref: ")).trim();
+  const vercelProject = (await ask("Nama project Vercel: ")).trim();
+  if (!ref) throw new Error("Supabase project ref wajib diisi.");
+  if (!vercelProject) throw new Error("Nama project Vercel wajib diisi.");
+  writeEnvLocal({ SUPABASE_PROJECT_REF: ref });
   const saUsername = await ask("Username Super Admin: ");
   const saPassword = await ask("Password Super Admin: ", true);
   const saRepeat = await ask("Ulangi password Super Admin: ", true);
@@ -164,7 +166,7 @@ async function setupProduction(argv: string[]): Promise<void> {
   run("pnpm install --frozen-lockfile");
 
   log("Langkah 5/14 supabase link");
-  run(`supabase link --project-ref ${ref}`);
+  runSupabaseLink(ref);
 
   log("Langkah 6/14 migrasi");
   run("supabase db push");
