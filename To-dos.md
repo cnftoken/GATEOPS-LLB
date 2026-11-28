@@ -304,7 +304,7 @@ Rujukan: PRD 27.3.
 - [x] 8.5 — Workflow: integration API — PRD 27.3
 - [x] 8.6 — Workflow: E2E Playwright — PRD 27.3
 - [x] 8.7 — Workflow: build web — PRD 27.3
-- [x] 8.8 — Workflow: audit dependensi (gagal bila high/critical) — PRD 27.3
+- [~] 8.8 — Workflow: audit dependensi (gagal bila high/critical) — PRD 27.3
 
 ---
 
@@ -329,7 +329,7 @@ Rujukan: PRD 27.3.
 ### 10. Checklist Produksi (PRD 26.7)
 
 - [x] 10.9 — `pnpm doctor` lulus — PRD 26.7
-- [x] 10.10 — Seluruh pengujian CI lulus — PRD 26.7
+- [~] 10.10 — Seluruh pengujian CI lulus — PRD 26.7 (dependency audit high/critical sedang diperbaiki)
 - [x] 10.11 — Migrasi diterapkan & diuji di local — PRD 26.7
 - [x] 10.12 — RLS aktif seluruh tabel; tak ada RPC anon/authenticated — PRD 26.7
 - [ ] 10.13 — Header keamanan terlihat di production — PRD 26.7
