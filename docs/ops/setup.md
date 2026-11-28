@@ -19,3 +19,15 @@ Supabase CLI menampilkan prompt password database opsional.
 - Jika native credentials storage tidak tersedia, jangan menganggap password tersimpan dengan aman; ikuti prompt CLI dan kebijakan keamanan sistem operasi.
 
 Pengguna memilih sendiri apakah akan memasukkan password pada prompt CLI. Tidak ada pilihan default yang menyimpan password secara otomatis oleh wizard.
+
+## Setup lokal
+
+Perintah yang benar untuk menjalankan wizard adalah:
+
+```sh
+pnpm run setup -- --target local
+```
+
+Setup lokal menyiapkan Supabase, menulis konfigurasi lokal, menerapkan migrasi yang tertunda, lalu memastikan Edge Functions lokal merespons endpoint health sebelum bootstrap Super Admin. Jika fungsi belum berjalan, wizard menjalankan `supabase functions serve --env-file .env.local` sebagai proses latar belakang dan menunggu health check terbatas. Log proses tersedia di `.setup/functions.log`; folder `.setup/` tidak masuk Git.
+
+CI menggunakan perintah `pnpm run setup` (bukan `pnpm setup`, yang merupakan perintah bawaan pnpm) dan tidak menjalankan server Edge Functions kedua setelah wizard selesai.
