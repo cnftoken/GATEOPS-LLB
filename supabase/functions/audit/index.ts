@@ -1,7 +1,7 @@
 // GET /audit (PRD 17.5, 22.5). Super Admin saja.
 import { handle, requireCtx } from "../_shared/handler.ts";
 import { paginated } from "../_shared/response.ts";
-import { parsePagination } from "../_shared/http.ts";
+import { parsePagination, safeFilter } from "../_shared/http.ts";
 import { checkDb } from "../_shared/db.ts";
 
 interface AuditRow {
@@ -33,7 +33,7 @@ async function list(
     );
   if (from) query = query.gte("occurred_at", from);
   if (to) query = query.lte("occurred_at", to);
-  if (username) query = query.ilike("actor_username", `%${username}%`);
+  if (username) query = query.ilike("actor_username", `%${safeFilter(username)}%`);
   if (action) query = query.eq("action", action);
   const start = (page - 1) * pageSize;
   const { data, count, error } = await query

@@ -96,11 +96,13 @@ async function report(
   const dateFrom = params.get("dateFrom");
   const dateTo = params.get("dateTo");
   if (!dateFrom || !dateTo) throw new ApiError("VALIDATION_FAILED");
-  if (dateFrom && dateTo) {
-    const span = Date.parse(dateTo) - Date.parse(dateFrom);
-    if (Number.isFinite(span) && span > 31 * 24 * 60 * 60 * 1000) {
-      throw new ApiError("VALIDATION_FAILED");
-    }
+  const fromMs = Date.parse(dateFrom);
+  const toMs = Date.parse(dateTo);
+  if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs > toMs) {
+    throw new ApiError("VALIDATION_FAILED");
+  }
+  if (toMs - fromMs > 31 * 24 * 60 * 60 * 1000) {
+    throw new ApiError("VALIDATION_FAILED");
   }
   const query = ctx.supabase.from("activities").select(SELECT, { count: "exact" });
   applyFilters(query as never, params);

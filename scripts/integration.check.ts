@@ -302,6 +302,13 @@ async function main(): Promise<void> {
   // S-16 periode laporan wajib
   const noPeriod = await apiFetch("activities/report", "GET", undefined, saToken);
   assert.equal(noPeriod.status, 400, "periode laporan wajib");
+  const badDate = await apiFetch(
+    "activities/report?dateFrom=bukan-tanggal&dateTo=2026-11-27",
+    "GET",
+    undefined,
+    saToken,
+  );
+  assert.equal(badDate.status, 400, "tanggal laporan tidak valid harus ditolak");
 
   // S-16 laporan melebihi 31 hari ditolak
   const tooWide = await apiFetch(

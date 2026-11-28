@@ -266,7 +266,10 @@ function AkunContent() {
         <select
           aria-label="Filter role"
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
+          onChange={(e) => {
+            setRoleFilter(e.target.value);
+            setPage(1);
+          }}
           className="h-11 rounded-control border border-line bg-surface px-3 text-[15px] outline-none focus:border-accent focus:ring-[3px] focus:ring-accent/25"
         >
           <option value="">Semua role</option>
