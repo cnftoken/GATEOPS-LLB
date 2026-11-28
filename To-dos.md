@@ -526,3 +526,9 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 
 | 2026-11-28 | 8.8, 10.10 | PRD 27.3, 26.7; FR-55 | fix/dependency-audit-vercel-cli, PR #3, head `a8618a2` | CI GitHub 8/8 lulus: lint/format, typecheck, unit UI/Edge, pgTAP, Integration API, E2E Playwright, build web, dependency audit. Audit PR: 0 temuan. | Vercel preview check tercatat gagal karena deployment preview diblokir; bukan job CI wajib dan tidak ada deployment production. PR tidak di-merge. Commit `ebe3995` tidak tersedia; branch dimulai dari `4ba7b97` lalu digabung dengan `origin/main`. |
 | 2026-11-28 | 10.11 | PRD 27.1, 26.7; FR-08 | fix/local-pgtap-isolation | `pnpm test:db` PASS 36/36 setelah isolasi; CI PR #4 job lain lulus, E2E gagal karena rate limit `supabase/setup-cli` | `04_p1_gps_accounts.sql` menonaktifkan Super Admin lokal sementara dalam transaksi agar `p1_sa` menjadi SA aktif terakhir; tidak ada quality gate yang dilewati. Menunggu retry E2E. |
+
+
+- [~] 6.8 — Jalur deployment production melalui integrasi GitHub/Vercel dan workflow Supabase manual opsional — PRD 3.3, 25, 26, FR-55, S-19, S-20
+- [ ] 6.9 — Tes regresi konfigurasi deployment GitHub Actions dan batas secret — PRD 24.1, 26, 27.3
+- [ ] 6.10 — Dokumentasi clone, konfigurasi satu kali, deploy Vercel, dan deploy Supabase — PRD 25, 26
+
