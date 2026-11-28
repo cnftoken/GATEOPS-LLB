@@ -1,7 +1,7 @@
 // Wizard setup (PRD 25.2/25.3). Idempoten. Tidak mencetak secret.
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { createInterface } from "node:readline/promises";
 import {
   apiFetch,
@@ -14,6 +14,7 @@ import {
 } from "./_lib";
 import { runSupabaseLink } from "./setup-production";
 import { waitForLocalFunctionsHealth } from "./local-functions";
+import { writeLocalFunctionsEnv } from "./local-functions-env";
 
 function readLocalSetup(): Record<string, string> {
   const path = ".local/setup.json";
@@ -69,7 +70,8 @@ function runWithInput(command: string, input: string): string {
 }
 
 async function setupLocal(): Promise<void> {
-  ensureInternalSecret();
+  const internalSecret = ensureInternalSecret();
+  writeLocalFunctionsEnv(internalSecret);
   log("Langkah: supabase start");
   run("supabase start");
 
@@ -96,26 +98,8 @@ async function setupLocal(): Promise<void> {
     log("Langkah: migrasi sudah sesuai (db reset dilewati)");
   }
 
-  mkdirSync(".setup", { recursive: true });
-  try {
-    await waitForLocalFunctionsHealth(fetch, async () => {}, 1);
-    log("Edge Functions lokal sudah berjalan.");
-  } catch {
-    const logFd = openSync(".setup/functions.log", "a");
-    let child;
-    try {
-      child = spawn("supabase", ["functions", "serve", "--env-file", ".env.local"], {
-        detached: true,
-        stdio: ["ignore", logFd, logFd],
-      });
-    } finally {
-      closeSync(logFd);
-    }
-    child.once("error", () => log("Gagal memulai proses Edge Functions lokal."));
-    child.unref();
-    log("Menunggu health Edge Functions lokal.");
-    await waitForLocalFunctionsHealth();
-  }
+  log("Menunggu health Edge Functions lokal.");
+  await waitForLocalFunctionsHealth();
 
   const setup = readLocalSetup();
   const username = process.env.GATEOPS_SA_USERNAME ?? setup.saUsername ?? "superadmin";
