@@ -2,6 +2,10 @@
 begin;
 select plan(6);
 
+-- Isolasi: stack lokal dapat berisi Super Admin dari setup. Nonaktifkan sementara
+-- agar p1_sa benar-benar menjadi Super Admin aktif terakhir yang diuji.
+update public.accounts set status = 'NONAKTIF' where role = 'SUPER_ADMIN';
+
 insert into public.accounts (role, username, password_hash, nama)
 values ('SUPER_ADMIN', 'p1_sa', 'x', 'Admin P1');
 insert into public.accounts (role, username, password_hash, nama, nrp, pangkat, jabatan)
