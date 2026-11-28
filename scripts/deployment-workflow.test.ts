@@ -56,7 +56,12 @@ test("FR-55/S-19: Vercel deployment does not require local CLI", () => {
 test("FR-55/S-20: CI and production pin Supabase CLI to the repository version", () => {
   for (const source of [workflow, ciWorkflow]) {
     assert.match(source, /uses: supabase\/setup-cli@v3/);
-    assert.match(source, new RegExp("version: " + packageJson.devDependencies.supabase.replaceAll(".", "\\.")));
+    assert.match(
+      source,
+      new RegExp(
+        "version: " + packageJson.devDependencies.supabase.replaceAll(".", "\\."),
+      ),
+    );
     assert.doesNotMatch(source, /version: latest/);
   }
 });
