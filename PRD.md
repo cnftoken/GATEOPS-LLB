@@ -1914,7 +1914,7 @@ Deployment rutin tidak mewajibkan `pnpm setup`, `pnpm doctor`, atau `pnpm releas
 2. Dari GitHub Actions, jalankan workflow `Deploy Supabase Production` secara manual pada branch `main`.
 3. Workflow menghubungkan project Supabase, mengatur `GATEOPS_INTERNAL_SECRET`, menerapkan migrasi dengan `supabase db push`, lalu men-deploy Edge Functions.
 4. Workflow hanya berjalan melalui `workflow_dispatch`; tidak otomatis berjalan pada push atau merge.
-5. Jalankan workflow sebelum deployment web apabila perubahan web membutuhkan migrasi atau Edge Function baru. Perubahan web saja tidak mengharuskan workflow Supabase.
+5. Jika perubahan menyentuh migrasi atau Edge Functions, nonaktifkan auto deployment Vercel sebelum merge, jalankan workflow Supabase setelah perubahan masuk `main`, lalu deploy web secara manual dari Vercel. Ini memastikan backend siap sebelum web baru aktif. Untuk perubahan web saja, auto deployment boleh tetap aktif dan workflow Supabase tidak diperlukan.
 
 **C. Metode CLI opsional**
 
