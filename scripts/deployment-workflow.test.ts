@@ -61,7 +61,8 @@ test("FR-55/S-20: CI and production pin Supabase CLI to the repository version",
     assert.match(
       source,
       new RegExp(
-        "version: " + packageJson.devDependencies.supabase.replaceAll(".", "\\."),
+        "version: " +
+          packageJson.devDependencies.supabase.replaceAll(".", "\\."),
       ),
     );
     assert.doesNotMatch(source, /version: latest/);
