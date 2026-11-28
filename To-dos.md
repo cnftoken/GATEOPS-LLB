@@ -403,7 +403,7 @@ Rujukan: PRD Bagian 23. Centang bila FR tercakup kode + tes.
 - [x] FR-52 — Audit dalam transaksi sama dgn perubahan bisnis (S-08)
 - [x] FR-53 — Audit append-only (S-18)
 - [x] FR-54 — Tanpa notifikasi transaksi keluar/kembali (S-03, S-06)
-[~] FR-55 — Deployment Vercel dan workflow Supabase manual opsional; CLI tetap opsional (S-19, S-20)
+- [~] FR-55 — Deployment Vercel dan workflow Supabase manual opsional; CLI tetap opsional (S-19, S-20)
 
 ---
 
@@ -429,8 +429,8 @@ Rujukan: PRD 27.2.
 - [x] S-16 — Riwayat filter & paginasi, PDF batas periode & baris (API, E2E)
 - [x] S-17 — KMD tak akses pengelolaan, Personel tak lihat data lain, Persit tak lihat GPS (API, E2E)
 - [x] S-18 — Audit tak dapat diubah/dihapus, RLS tolak anon/authenticated (Database)
-[~] S-19 — Import dan deployment Vercel berhasil tanpa perintah CLI lokal (Deployment)
-[~] S-20 — Workflow Supabase manual di branch `main` menerapkan migrasi dan Edge Functions, tanpa auto-trigger push/merge (Deployment)
+- [~] S-19 — Import dan deployment Vercel berhasil tanpa perintah CLI lokal (Deployment)
+- [~] S-20 — Workflow Supabase manual di branch `main` menerapkan migrasi dan Edge Functions, tanpa auto-trigger push/merge (Deployment)
 
 ---
 
