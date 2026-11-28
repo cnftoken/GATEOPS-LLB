@@ -5,7 +5,9 @@ import test from "node:test";
 const workflow = readFileSync(".github/workflows/deploy-supabase.yml", "utf8");
 const deploymentGuide = readFileSync("docs/ops/deployment.md", "utf8");
 const ciWorkflow = readFileSync(".github/workflows/ci.yml", "utf8");
-const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as { devDependencies: { supabase: string } };
+const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
+  devDependencies: { supabase: string };
+};
 
 test("FR-55/S-20: workflow is manual only", () => {
   assert.match(workflow, /^on:\n  workflow_dispatch:/m);
@@ -54,7 +56,7 @@ test("FR-55/S-19: Vercel deployment does not require local CLI", () => {
 test("FR-55/S-20: CI and production pin Supabase CLI to the repository version", () => {
   for (const source of [workflow, ciWorkflow]) {
     assert.match(source, /uses: supabase\/setup-cli@v3/);
-    assert.match(source, new RegExp("version: " + packageJson.devDependencies.supabase.replaceAll(".", "\\\\.")));
+    assert.match(source, new RegExp("version: " + packageJson.devDependencies.supabase.replaceAll(".", "\\.")));
     assert.doesNotMatch(source, /version: latest/);
   }
 });
