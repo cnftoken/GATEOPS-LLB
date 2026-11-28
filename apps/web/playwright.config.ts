@@ -1,4 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
+import { resolve } from "node:path";
+import { loadPlaywrightEnv } from "../../scripts/playwright-env";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -8,6 +10,7 @@ export default defineConfig({
   reporter: "html",
   webServer: {
     command: "corepack pnpm --filter @gateops/web dev",
+    env: loadPlaywrightEnv(resolve(process.cwd(), "../..")),
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
