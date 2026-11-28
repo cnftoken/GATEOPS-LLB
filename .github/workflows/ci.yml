@@ -97,7 +97,6 @@ jobs:
         with:
           version: latest
       - run: pnpm install --frozen-lockfile
-      - run: supabase start
       - run: pnpm run setup -- --target local
       - run: pnpm test
       - run: npx tsx scripts/integration.check.ts
