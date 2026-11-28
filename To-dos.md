@@ -274,6 +274,8 @@ Rujukan: PRD 25, 26.4.
 - [x] 6.5 — `seed-demo.ts` (tolak non-local, kredensial di `.local/`) — PRD 25.7
 - [x] 6.6 — Guard target eksplisit pada script yang menyentuh production — AGENTS 5, PRD 25.5
 - [x] 6.7 — Password database Supabase opsional saat `setup`; input dikelola CLI, dapat dikosongkan, dan hanya disimpan di native credentials storage jika pengguna memilih mengisinya — FR-55, S-19, S-20
+- [~] 6.8 — Integrasi deployment web melalui Vercel Git dan workflow Supabase production manual opsional — PRD 3.3, 26, FR-55, S-19, S-20
+- [~] 6.9 — Dokumentasi clone, konfigurasi satu kali, deployment Vercel, dan workflow Supabase — PRD 25, 26
 
 ---
 
@@ -290,6 +292,7 @@ Rujukan: PRD 27, AGENTS 10.
 - [x] 7.7 — Tes konsistensi pesan `messages.ts` server vs UI vs PRD — AGENTS 10.3
 - [x] 7.8 — Tes ambang waktu 60 detik & 15 menit dengan clock dapat diatur — AGENTS 10.1
 - [x] 7.9 — RBAC: tiap endpoint untuk tiap role tak diizinkan — AGENTS 10.2, S-17
+- [~] 7.11 — Tes kontrak workflow deployment: manual dispatch, secrets, urutan migrasi/fungsi, tanpa service role key — PRD 24.1, 26, FR-55, S-20
 - [~] 7.10 — Uji beban kapasitas desain (2.000/100/500/150) penuhi target 24.2 — PRD 24.2
 
 ---
@@ -337,7 +340,8 @@ Rujukan: PRD 27.3.
 - [ ] 10.14 — Health check production ok — PRD 26.7
 - [ ] 10.15 — Backup & PITR aktif; uji restore pertama selesai — PRD 26.7
 - [ ] 10.16 — Pengujian beban lulus — PRD 26.7
-- [~] 10.17 — `pnpm release` sukses deploy migrasi+functions+web + health check — PRD 3.3, 26.4, FR-55
+- [~] 10.18 — Workflow Supabase production manual berhasil menerapkan migrasi dan Edge Functions — PRD 26.4, FR-55, S-20
+- [ ] 10.17 — Jalur CLI `pnpm release` opsional tetap tersedia dan dapat dijalankan — PRD 26.4, FR-55 (bukan blocker deployment standar)
 
 ---
 
@@ -399,7 +403,7 @@ Rujukan: PRD Bagian 23. Centang bila FR tercakup kode + tes.
 - [x] FR-52 — Audit dalam transaksi sama dgn perubahan bisnis (S-08)
 - [x] FR-53 — Audit append-only (S-18)
 - [x] FR-54 — Tanpa notifikasi transaksi keluar/kembali (S-03, S-06)
-- [x] FR-55 — Instalasi/konfigurasi/migrasi/deployment via perintah otomatis (S-19, S-20)
+- [~] FR-55 — Deployment Vercel dan workflow Supabase manual opsional; CLI tetap opsional (S-19, S-20)
 
 ---
 
@@ -425,8 +429,8 @@ Rujukan: PRD 27.2.
 - [x] S-16 — Riwayat filter & paginasi, PDF batas periode & baris (API, E2E)
 - [x] S-17 — KMD tak akses pengelolaan, Personel tak lihat data lain, Persit tak lihat GPS (API, E2E)
 - [x] S-18 — Audit tak dapat diubah/dihapus, RLS tolak anon/authenticated (Database)
-- [x] S-19 — `setup --target local` env kosong berhasil & idempotent (Setup)
-- [x] S-20 — `release` env local jalankan seluruh urutan & health check (Setup)
+- [~] S-19 — Import dan deployment Vercel berhasil tanpa perintah CLI lokal (Deployment)
+- [~] S-20 — Workflow Supabase manual di branch `main` menerapkan migrasi dan Edge Functions, tanpa auto-trigger push/merge (Deployment)
 
 ---
 
@@ -526,3 +530,5 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 
 | 2026-11-28 | 8.8, 10.10 | PRD 27.3, 26.7; FR-55 | fix/dependency-audit-vercel-cli, PR #3, head `a8618a2` | CI GitHub 8/8 lulus: lint/format, typecheck, unit UI/Edge, pgTAP, Integration API, E2E Playwright, build web, dependency audit. Audit PR: 0 temuan. | Vercel preview check tercatat gagal karena deployment preview diblokir; bukan job CI wajib dan tidak ada deployment production. PR tidak di-merge. Commit `ebe3995` tidak tersedia; branch dimulai dari `4ba7b97` lalu digabung dengan `origin/main`. |
 | 2026-11-28 | 10.11 | PRD 27.1, 26.7; FR-08 | fix/local-pgtap-isolation | `pnpm test:db` PASS 36/36 setelah isolasi; CI PR #4 job lain lulus, E2E gagal karena rate limit `supabase/setup-cli` | `04_p1_gps_accounts.sql` menonaktifkan Super Admin lokal sementara dalam transaksi agar `p1_sa` menjadi SA aktif terakhir; tidak ada quality gate yang dilewati. Menunggu retry E2E. |
+
+

@@ -100,10 +100,10 @@ Pengembangan dianggap selesai ketika seluruh kondisi berikut terpenuhi:
 
 1. Seluruh fitur dalam lingkup berjalan sesuai kebutuhan fungsional di Bagian 23.
 2. Seluruh skenario wajib di Bagian 27 lulus di CI.
-3. Perintah `pnpm setup` pada environment kosong menghasilkan sistem yang berjalan tanpa langkah manual selain input yang diminta wizard.
-4. Perintah `pnpm setup` yang dijalankan ulang tidak mengubah sistem yang sudah benar dan tidak menduplikasi data.
-5. Perintah `pnpm doctor` menyatakan seluruh pemeriksaan lulus.
-6. Perintah `pnpm release` berhasil men-deploy migrasi, Edge Functions, dan aplikasi web ke production, lalu health check lulus.
+3. Repository dapat dihubungkan ke Vercel dan aplikasi web dapat di-deploy ke production dari integrasi Git tanpa menjalankan `pnpm setup`, `pnpm doctor`, atau `pnpm release`.
+4. Migrasi dan Edge Functions production dapat di-deploy melalui workflow GitHub Actions manual yang disediakan repository. Workflow ini opsional untuk perubahan yang tidak menyentuh backend.
+5. Auto deployment Vercel dari branch `main` boleh diaktifkan atau dinonaktifkan oleh Owner; bukan prasyarat agar deployment manual melalui Vercel berfungsi.
+6. `pnpm setup`, `pnpm doctor`, dan `pnpm release` tetap tersedia sebagai alat opsional untuk bootstrap, diagnosis, dan rilis terorkestrasi.
 7. Tidak ada secret yang terekspos ke browser, repository, atau log.
 
 ---
@@ -159,7 +159,7 @@ Supabase PostgreSQL
 | Package manager | pnpm 9 |
 | Runtime lokal | Node.js 22 LTS |
 | Tes | Vitest (unit UI), Deno test (Edge Functions), pgTAP (database), Playwright (E2E) |
-| CI/CD | GitHub Actions untuk gerbang kualitas. Vercel Git integration untuk deployment web |
+| CI/CD | GitHub Actions untuk gerbang kualitas dan workflow deployment Supabase manual opsional. Vercel Git integration untuk deployment web; auto deployment production dapat diaktifkan atau dinonaktifkan oleh Owner |
 
 Versi dependensi dikunci melalui `pnpm-lock.yaml` dan `deno.lock`. Pembaruan versi dilakukan melalui pull request yang lulus seluruh gerbang CI.
 
@@ -1659,7 +1659,7 @@ Kolom Verifikasi menunjuk skenario di Bagian 27.2.
 | FR-52 | Audit dicatat dalam transaksi yang sama dengan perubahan bisnis | S-08 |
 | FR-53 | Audit bersifat append-only | S-18 |
 | FR-54 | Tidak ada notifikasi transaksi keluar dan kembali | S-03, S-06 |
-| FR-55 | Instalasi, konfigurasi, migrasi, dan deployment berjalan melalui perintah otomatis | S-19, S-20 |
+| FR-55 | Deployment web tersedia melalui integrasi Vercel dan migrasi/Edge Functions melalui workflow GitHub manual opsional; perintah CLI tetap opsional | S-19, S-20 |
 
 ---
 
@@ -1769,12 +1769,14 @@ Tujuan bagian ini adalah instalasi dan konfigurasi yang berjalan otomatis melalu
 | Akun Supabase | Aktif | Project Supabase production dibuat sekali secara manual oleh Owner |
 | Akun Vercel | Aktif | Project Vercel dibuat oleh wizard atau sudah ada |
 | Docker | Versi terbaru | Hanya untuk target local |
-| Supabase CLI | Versi di devDependency | Dipasang melalui pnpm |
-| Vercel CLI | Versi di devDependency | Dipasang melalui pnpm |
+| Supabase CLI | Versi di devDependency | Hanya diperlukan untuk alur CLI opsional; workflow GitHub memasang CLI sendiri |
+| Vercel CLI | Versi di devDependency | Hanya diperlukan untuk alur CLI opsional; deployment standar dilakukan melalui dashboard Vercel |
 
-Pembuatan project Supabase production dilakukan sekali oleh Owner di dashboard Supabase. Setup menerima project ref dari project tersebut. Seluruh langkah lain berjalan otomatis.
+Pembuatan project Supabase production dilakukan sekali oleh Owner di dashboard Supabase. Deployment standar tidak memerlukan Supabase CLI atau Vercel CLI pada komputer developer.
 
 ### 25.2 Perintah Utama
+
+Perintah berikut bersifat opsional untuk developer. Deployment rutin tidak mensyaratkan CLI lokal atau perintah `pnpm`.
 
 | Perintah | Fungsi |
 |---|---|
@@ -1789,7 +1791,9 @@ Pembuatan project Supabase production dilakukan sekali oleh Owner di dashboard S
 | `pnpm test:e2e` | Playwright |
 | `pnpm release` | Deployment produksi: migrasi, Edge Functions, web, health check |
 
-### 25.3 Alur `pnpm setup` (Target Production)
+### 25.3 Bootstrap Production Opsional
+
+`pnpm setup` dipertahankan untuk bootstrap terorkestrasi oleh developer yang memilih alur CLI. Ini bukan langkah wajib untuk clone repository atau deployment rutin. Alur utama deployment dijelaskan di Bagian 26. Setiap langkah setup tetap idempoten dan tidak boleh mencetak secret.
 
 Wizard menjalankan langkah berikut secara berurutan. Setiap langkah memeriksa kondisi saat ini dan melewatinya jika sudah sesuai.
 
@@ -1814,11 +1818,13 @@ Untuk target local, langkah 5 sampai 12 diganti dengan: membuat `supabase/functi
 
 | Nama | Lokasi | Keterangan |
 |---|---|---|
-| SUPABASE_PROJECT_REF | Lokal (wizard) | Project ref production |
-| Password database Supabase | Opsional; hanya native credentials storage milik Supabase CLI jika pengguna memasukkannya | Ditawarkan langsung oleh prompt `supabase link`; boleh dikosongkan. Wizard tidak menyimpan atau meneruskan password. Jika dimasukkan, penyimpanan mengikuti perilaku Supabase CLI dan ketersediaan native credentials storage. |
+| SUPABASE_PROJECT_REF | GitHub Actions secret dan opsional lokal | Project ref production Supabase |
+| SUPABASE_ACCESS_TOKEN | GitHub Actions secret | Token akses Supabase untuk workflow deployment manual. Tidak digunakan oleh aplikasi runtime. |
+| SUPABASE_DB_PASSWORD | GitHub Actions secret | Password database production untuk Supabase CLI. Hanya digunakan oleh workflow deployment Supabase. |
+| Password database Supabase (lokal) | Opsional; native credentials storage Supabase CLI | Hanya digunakan jika developer memilih alur CLI lokal. |
 | SUPABASE_FUNCTIONS_URL | Vercel env, `.env.local` | URL `https://<ref>.supabase.co/functions/v1` atau localhost untuk local |
 | SUPABASE_ANON_KEY | Vercel env, `.env.local` | Hanya untuk header Authorization BFF. Bukan secret, tetapi tidak dikirim ke browser |
-| GATEOPS_INTERNAL_SECRET | Vercel env, Supabase secret, `.env.local`, `supabase/functions/.env` (local saja) | Secret antara BFF dan Edge Functions. Untuk local, nilai pada `supabase/functions/.env` dibaca saat `supabase start`; file ini diabaikan Git. |
+| GATEOPS_INTERNAL_SECRET | Vercel env, Supabase secret, GitHub Actions secret, `.env.local`, `supabase/functions/.env` (local saja) | Secret antara BFF dan Edge Functions. GitHub Actions secret digunakan untuk mengatur Supabase Functions; file lokal diabaikan Git. |
 | SUPABASE_SERVICE_ROLE_KEY | Otomatis di Edge Functions | Disediakan oleh Supabase. DILARANG di Vercel |
 | VERCEL_PROJECT_ID | `.vercel/project.json` | Dibuat oleh `vercel link` |
 
@@ -1867,8 +1873,9 @@ Berkas `.env.example` berisi nama variabel tanpa nilai. Berkas `.env.local`, `su
 2. Tidak ada environment staging pada rilis ini.
 3. Environment local menggunakan Supabase CLI dan `vercel dev` atau `next dev`.
 4. Environment production menggunakan satu project Supabase dan satu project Vercel.
-5. Preview deployment Vercel dinonaktifkan pada project. Hanya branch `main` yang dideploy ke production.
-6. Preview deployment tidak terhubung ke Supabase production.
+5. Branch `main` adalah production branch Vercel.
+6. Auto deployment dari push/merge ke `main` bersifat opsional dan dapat diaktifkan atau dinonaktifkan di pengaturan Vercel. Deployment manual dari dashboard Vercel tetap didukung.
+7. Preview deployment Vercel dinonaktifkan. Hanya deployment production dari branch `main` yang digunakan pada rilis ini.
 
 ### 26.2 Supabase
 
@@ -1883,23 +1890,35 @@ Berkas `.env.example` berisi nama variabel tanpa nilai. Berkas `.env.local`, `su
 ### 26.3 Vercel
 
 1. Satu project Vercel dengan root directory `apps/web`.
-2. Integrasi Git terhubung ke repository. Branch `main` menjadi production.
-3. Preview deployment dinonaktifkan.
-4. Environment variables production: `SUPABASE_FUNCTIONS_URL`, `SUPABASE_ANON_KEY`, `GATEOPS_INTERNAL_SECRET`.
+2. Integrasi Git terhubung ke repository. Branch `main` menjadi production branch.
+3. Auto deployment production dapat diaktifkan atau dinonaktifkan oleh Owner; tidak ada kewajiban menjalankan CLI lokal.
+4. Environment variables production wajib tersedia: `SUPABASE_FUNCTIONS_URL`, `SUPABASE_ANON_KEY`, `GATEOPS_INTERNAL_SECRET`.
 5. Runtime Node.js 22.
 6. Fungsi region Vercel dipilih yang paling dekat dengan region Supabase production.
-7. Build command: `pnpm --filter web build`. Install command: `pnpm install --frozen-lockfile`.
+7. Build command: `pnpm --filter @gateops/web build`. Install command: `pnpm install --frozen-lockfile`.
 
-### 26.4 Urutan Rilis
+### 26.4 Metode Deployment
 
-`pnpm release` menjalankan urutan berikut dan berhenti jika satu langkah gagal:
+Deployment rutin tidak mewajibkan `pnpm setup`, `pnpm doctor`, atau `pnpm release`.
 
-1. `doctor` untuk memastikan prasyarat dan konfigurasi.
-2. Pemeriksaan kualitas: lint, typecheck, unit test, pgTAP.
-3. `supabase db push` untuk migrasi baru.
-4. `supabase functions deploy` untuk seluruh Edge Functions.
-5. `vercel deploy --prod` untuk aplikasi web.
-6. Health check dan smoke test ringan.
+**A. Aplikasi web (Vercel)**
+
+1. Import repository GitHub ke Vercel.
+2. Atur Root Directory ke `apps/web`, Production Branch ke `main`, dan konfigurasi environment variables production pada Bagian 26.3.
+3. Klik Deploy. Untuk rilis berikutnya, Owner dapat memakai auto deployment dari `main` atau menonaktifkannya dan memicu deployment manual dari dashboard Vercel.
+4. Vercel menjalankan install dan build sesuai konfigurasi project.
+
+**B. Database dan Edge Functions (Supabase)**
+
+1. Konfigurasikan GitHub Actions repository secrets: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, dan `GATEOPS_INTERNAL_SECRET`.
+2. Dari GitHub Actions, jalankan workflow `Deploy Supabase Production` secara manual pada branch `main`.
+3. Workflow menghubungkan project Supabase, mengatur `GATEOPS_INTERNAL_SECRET`, menerapkan migrasi dengan `supabase db push`, lalu men-deploy Edge Functions.
+4. Workflow hanya berjalan melalui `workflow_dispatch`; tidak otomatis berjalan pada push atau merge.
+5. Jika perubahan menyentuh migrasi atau Edge Functions, nonaktifkan auto deployment Vercel sebelum merge, jalankan workflow Supabase setelah perubahan masuk `main`, lalu deploy web secara manual dari Vercel. Ini memastikan backend siap sebelum web baru aktif. Untuk perubahan web saja, auto deployment boleh tetap aktif dan workflow Supabase tidak diperlukan.
+
+**C. Metode CLI opsional**
+
+`pnpm setup`, `pnpm doctor`, dan `pnpm release` tetap tersedia untuk bootstrap, diagnosis, dan deployment terorkestrasi. `pnpm release` menjalankan urutan pemeriksaan kualitas, migrasi, Edge Functions, Vercel, dan health check seperti sebelumnya. Metode ini bukan persyaratan untuk deployment rutin.
 
 Urutan ini memastikan skema baru tersedia sebelum fungsi dan web baru aktif.
 
@@ -1916,8 +1935,8 @@ Urutan ini memastikan skema baru tersedia sebelum fungsi dan web baru aktif.
 
 ### 26.6 Rollback
 
-1. Web: menggunakan Instant Rollback Vercel ke deployment sebelumnya, atau menjalankan `pnpm release` dari commit sebelumnya.
-2. Edge Functions: menjalankan `pnpm release` dari commit sebelumnya. Karena migrasi bersifat expand-contract, versi lama tetap kompatibel dengan skema terbaru.
+1. Web: gunakan Instant Rollback Vercel ke deployment sebelumnya, atau deploy ulang commit sebelumnya melalui dashboard Vercel.
+2. Edge Functions: jalankan workflow `Deploy Supabase Production` dari branch/commit yang telah ditinjau atau gunakan `pnpm release` opsional. Karena migrasi bersifat expand-contract, versi lama tetap kompatibel dengan skema terbaru.
 3. Database: tidak ada rollback migrasi. Jika data perlu dipulihkan, digunakan PITR Supabase sesuai Bagian 24.4 dengan persetujuan Owner.
 4. Setiap rilis dicatat dengan commit hash dan waktu rilis di `docs/ops/releases.md`.
 
@@ -1925,8 +1944,8 @@ Urutan ini memastikan skema baru tersedia sebelum fungsi dan web baru aktif.
 
 Seluruh butir WAJIB terpenuhi sebelum rilis pertama dan setiap rilis berikutnya yang menyentuh skema atau keamanan:
 
-- [ ] `pnpm doctor` lulus.
 - [ ] Seluruh pengujian di CI lulus.
+- [ ] Jika perubahan menyentuh database atau Edge Functions, workflow `Deploy Supabase Production` berhasil.
 - [ ] Migrasi diterapkan dan diuji di local.
 - [ ] RLS aktif pada seluruh tabel.
 - [ ] Tidak ada RPC yang dapat dieksekusi anon atau authenticated.
@@ -1974,8 +1993,8 @@ Seluruh butir WAJIB terpenuhi sebelum rilis pertama dan setiap rilis berikutnya 
 | S-16 | Riwayat dengan filter dan paginasi, laporan PDF dengan batas periode dan baris | API, E2E |
 | S-17 | Komandan tidak dapat mengakses rute dan endpoint pengelolaan, Personel tidak dapat melihat data orang lain, Persit tidak dapat melihat GPS | API, E2E |
 | S-18 | Audit tidak dapat diubah atau dihapus, RLS menolak akses anon dan authenticated | Database |
-| S-19 | `pnpm setup -- --target local` pada environment kosong berhasil, dan dijalankan ulang tanpa perubahan | Setup |
-| S-20 | `pnpm release` pada environment local menjalankan seluruh urutan dan health check | Setup |
+| S-19 | Repository dapat di-import ke Vercel, environment production dikonfigurasi satu kali, dan deployment web berhasil tanpa perintah CLI lokal | Deployment |
+| S-20 | Workflow GitHub Actions `Deploy Supabase Production` dapat dijalankan manual pada `main`, menerapkan migrasi dan Edge Functions, serta tidak berjalan otomatis pada push/merge | Deployment |
 
 ### 27.3 Gerbang CI
 
