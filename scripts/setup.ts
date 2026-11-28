@@ -150,10 +150,8 @@ async function setupProduction(argv: string[]): Promise<void> {
   log("Langkah 2/14 input wizard");
   const ref = (await ask("Supabase project ref: ")).trim();
   const vercelProject = (await ask("Nama project Vercel: ")).trim();
-  const databasePassword = await ask("Password database Supabase (tidak disimpan): ", true);
   if (!ref) throw new Error("Supabase project ref wajib diisi.");
   if (!vercelProject) throw new Error("Nama project Vercel wajib diisi.");
-  if (!databasePassword.trim()) throw new Error("Password database Supabase wajib diisi.");
   writeEnvLocal({ SUPABASE_PROJECT_REF: ref });
   const saUsername = await ask("Username Super Admin: ");
   const saPassword = await ask("Password Super Admin: ", true);
@@ -168,7 +166,7 @@ async function setupProduction(argv: string[]): Promise<void> {
   run("pnpm install --frozen-lockfile");
 
   log("Langkah 5/14 supabase link");
-  runSupabaseLink(ref, databasePassword);
+  runSupabaseLink(ref);
 
   log("Langkah 6/14 migrasi");
   run("supabase db push");
