@@ -269,7 +269,7 @@ Rujukan: PRD 25, 26.4.
 
 - [x] 6.1 — `doctor.ts` (prasyarat, login, koneksi, RLS, grant RPC, health) — PRD 25.6
 - [x] 6.2 — `setup.ts` target production (alur 25.3, idempoten) — PRD 25.3, 25.5, FR-55, S-19
-- [x] 6.3 — `setup.ts --target local` (supabase start/reset, functions serve, bootstrap SA) — PRD 25.3, S-19
+- [~] 6.3 — `setup.ts --target local` (supabase start/reset, functions serve, bootstrap SA) — PRD 25.3, FR-55, S-19
 - [x] 6.4 — `release.ts` (urutan 26.4, stop bila gagal) — PRD 26.4, FR-55, S-20
 - [x] 6.5 — `seed-demo.ts` (tolak non-local, kredensial di `.local/`) — PRD 25.7
 - [x] 6.6 — Guard target eksplisit pada script yang menyentuh production — AGENTS 5, PRD 25.5
@@ -286,7 +286,7 @@ Rujukan: PRD 27, AGENTS 10.
 - [x] 7.3 — Integration API (Deno test vs Supabase local): tiap endpoint tiap role — PRD 27.1
 - [x] 7.4 — pgTAP (lihat Fase 1.6) — PRD 27.1
 - [x] 7.5 — E2E Playwright alur Bagian 19 — PRD 27.1, 19
-- [x] 7.6 — Tes setup idempotensi `setup --target local` — PRD 27.2 S-19
+- [~] 7.6 — Tes setup idempotensi `setup --target local` dan readiness Edge Functions — PRD 27.2 S-19
 - [x] 7.7 — Tes konsistensi pesan `messages.ts` server vs UI vs PRD — AGENTS 10.3
 - [x] 7.8 — Tes ambang waktu 60 detik & 15 menit dengan clock dapat diatur — AGENTS 10.1
 - [x] 7.9 — RBAC: tiap endpoint untuk tiap role tak diizinkan — AGENTS 10.2, S-17
@@ -503,3 +503,5 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-28 | validasi laporan & filter akun | PRD 22.5, 21.5 | - | `integration.check` PASS; `pnpm lint`/`typecheck` sukses; `deno task check` sukses | tanggal laporan tidak valid/terbalik ditolak 400, filter role akun reset ke halaman 1, pencarian audit di-escape |
 
 | 2026-11-28 | 6.7 (password database opsional) | PRD 25.3–25.5, FR-55, S-19, S-20 | docs/optional-supabase-db-password | CI awal gagal sebelum tes: pnpm/action-setup versi ganda dan pnpm tidak terpasang pada job pgTAP | Prompt password dialihkan ke Supabase CLI; password tidak melewati wizard. Workflow CI diperbaiki agar memakai pnpm 9.15.9 dan memasang pnpm pada job pgTAP; menunggu eksekusi CI ulang |
+
+| 2026-11-28 | 6.3, 7.6, CI integration/E2E | PRD 25.3 local, FR-55, S-19, 27.3 | docs/optional-supabase-db-password | Tes readiness ditambahkan; menunggu CI untuk bukti runtime | Ganti pemanggilan `pnpm setup` menjadi `pnpm run setup`; wizard lokal memastikan Edge Functions sehat sebelum bootstrap; workflow tidak memulai server duplikat; tes retry/readiness dan dokumentasi setup lokal ditambahkan |
