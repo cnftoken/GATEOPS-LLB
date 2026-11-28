@@ -62,10 +62,15 @@ export function getSupabaseAnonKey(
     );
     return parseSupabaseAnonKey(output);
   } catch (error) {
-    if (error instanceof Error && /legacy anon key|format JSON|format daftar/.test(error.message)) {
+    if (
+      error instanceof Error &&
+      /legacy anon key|format JSON|format daftar/.test(error.message)
+    ) {
       throw error;
     }
-    throw new Error("Gagal mengambil legacy anon key dari Supabase CLI. Pastikan sudah login dan project dapat diakses.");
+    throw new Error(
+      "Gagal mengambil legacy anon key dari Supabase CLI. Pastikan sudah login dan project dapat diakses.",
+    );
   }
 }
 
