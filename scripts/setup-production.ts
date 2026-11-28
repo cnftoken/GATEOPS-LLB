@@ -5,34 +5,31 @@ type SupabaseExecutor = (
   args: string[],
   options: {
     encoding: "utf8";
-    stdio: ["ignore", "pipe", "pipe"];
+    stdio: "inherit";
     shell: false;
   },
 ) => string;
 
-export function createSupabaseLinkArgs(projectRef: string, databasePassword: string): string[] {
+export function createSupabaseLinkArgs(projectRef: string): string[] {
   const ref = projectRef.trim();
   if (!ref) throw new Error("Supabase project ref wajib diisi.");
-  if (!databasePassword.trim()) throw new Error("Password database Supabase wajib diisi.");
-
-  return ["link", "--project-ref", ref, "--password", databasePassword];
+  return ["link", "--project-ref", ref];
 }
 
 export function runSupabaseLink(
   projectRef: string,
-  databasePassword: string,
   execute: SupabaseExecutor = (file, args, options) => execFileSync(file, args, options),
 ): string {
-  const args = createSupabaseLinkArgs(projectRef, databasePassword);
+  const args = createSupabaseLinkArgs(projectRef);
   try {
     return execute("supabase", args, {
       encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
+      stdio: "inherit",
       shell: false,
     }).trim();
   } catch {
     throw new Error(
-      "Gagal menghubungkan project Supabase. Periksa project ref dan password database.",
+      "Gagal menghubungkan project Supabase. Periksa project ref, login CLI, dan kredensial database jika dimasukkan.",
     );
   }
 }
