@@ -34,8 +34,7 @@
     "prettier": "3.10.1",
     "supabase": "3.4.0",
     "tsx": "4.23.15",
-    "typescript": "5.9.3",
-    "vercel": "67.0.0"
+    "typescript": "5.9.3"
   },
   "workspaces": [
     "apps/*",
