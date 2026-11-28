@@ -12,10 +12,9 @@ test("mengambil legacy anon key dari output JSON Supabase CLI", () => {
 });
 
 test("menolak output CLI tanpa anon key", () => {
-  assert.throws(
-    () => parseSupabaseAnonKey(JSON.stringify([{ name: "publishable", api_key: "sb_publishable_x" }])),
-    /legacy anon key tidak ditemukan/i,
-  );
+  const output = JSON.stringify([{ name: "publishable", api_key: "sb_publishable_x" }]);
+
+  assert.throws(() => parseSupabaseAnonKey(output), /legacy anon key tidak ditemukan/i);
 });
 
 test("menolak output CLI yang bukan JSON valid", () => {
