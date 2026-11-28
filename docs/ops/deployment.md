@@ -20,7 +20,7 @@ Panduan ini adalah jalur deployment standar. Clone repository tidak mewajibkan i
 
 Jangan menambahkan `SUPABASE_SERVICE_ROLE_KEY` ke Vercel. Key tersebut hanya disediakan oleh Supabase di runtime Edge Functions.
 
-Auto deployment dari push/merge ke `main` dapat diaktifkan atau dinonaktifkan pada pengaturan Git Vercel. Jika dinonaktifkan, deployment berikutnya dapat dimulai dari dashboard Vercel.
+Preview deployment Vercel dinonaktifkan pada project ini. Auto deployment production dari push/merge ke `main` dapat diaktifkan atau dinonaktifkan pada pengaturan Git Vercel. Jika dinonaktifkan, deployment berikutnya dapat dimulai dari dashboard Vercel.
 
 ## 2. Siapkan deployment Supabase satu kali
 
