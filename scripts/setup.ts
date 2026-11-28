@@ -176,6 +176,7 @@ async function setupProduction(argv: string[]): Promise<void> {
   log("Mengambil legacy anon key untuk autentikasi Edge Function.");
   const anonKey = getSupabaseAnonKey(ref);
   writeEnvLocal({ SUPABASE_ANON_KEY: anonKey });
+  process.env.SUPABASE_ANON_KEY = anonKey;
 
   log("Langkah 6/14 migrasi");
   run("supabase db push");
