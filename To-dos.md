@@ -331,13 +331,13 @@ Rujukan: PRD 27.3.
 
 - [x] 10.9 — `pnpm doctor` lulus — PRD 26.7
 - [x] 10.10 — Seluruh pengujian CI lulus — PRD 26.7 (CI PR #3: 8/8 job GitHub lulus)
-- [x] 10.11 — Migrasi diterapkan & diuji di local — PRD 26.7
+- [~] 10.11 — Migrasi diterapkan & diuji di local — PRD 26.7 (memperbaiki isolasi pgTAP pada stack lokal yang sudah berisi Super Admin)
 - [x] 10.12 — RLS aktif seluruh tabel; tak ada RPC anon/authenticated — PRD 26.7
 - [ ] 10.13 — Header keamanan terlihat di production — PRD 26.7
 - [ ] 10.14 — Health check production ok — PRD 26.7
 - [ ] 10.15 — Backup & PITR aktif; uji restore pertama selesai — PRD 26.7
 - [ ] 10.16 — Pengujian beban lulus — PRD 26.7
-- [ ] 10.17 — `pnpm release` sukses deploy migrasi+functions+web + health check — PRD 3.3, 26.4, FR-55
+- [~] 10.17 — `pnpm release` sukses deploy migrasi+functions+web + health check — PRD 3.3, 26.4, FR-55
 
 ---
 
