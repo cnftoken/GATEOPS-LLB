@@ -28,6 +28,6 @@ Perintah yang benar untuk menjalankan wizard adalah:
 pnpm run setup -- --target local
 ```
 
-Setup lokal menyiapkan Supabase, menulis konfigurasi lokal, menerapkan migrasi yang tertunda, lalu memastikan Edge Functions lokal merespons endpoint health sebelum bootstrap Super Admin. Jika fungsi belum berjalan, wizard menjalankan `supabase functions serve --env-file .env.local` sebagai proses latar belakang dan menunggu health check terbatas. Log proses tersedia di `.setup/functions.log`; folder `.setup/` tidak masuk Git.
+Setup lokal membuat atau memperbarui `supabase/functions/.env` dengan `GATEOPS_INTERNAL_SECRET` lokal sebelum menjalankan `supabase start`. File tersebut adalah sumber secret yang dibaca Edge Functions pada stack lokal dan diabaikan Git. Setelah stack siap, wizard menulis URL dan anon key ke `.env.local`, menerapkan migrasi yang tertunda, menunggu endpoint health Edge Functions, lalu melakukan bootstrap Super Admin. Jangan menjalankan `supabase start` terpisah sebelum wizard karena secret harus tersedia saat stack pertama kali dimulai.
 
-CI menggunakan perintah `pnpm run setup` (bukan `pnpm setup`, yang merupakan perintah bawaan pnpm) dan tidak menjalankan server Edge Functions kedua setelah wizard selesai.
+CI menggunakan perintah `pnpm run setup` (bukan `pnpm setup`, yang merupakan perintah bawaan pnpm). Wizard sendiri memulai Supabase sehingga job Integration API dan E2E tidak boleh memulai stack lebih dahulu.
