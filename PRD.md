@@ -1794,10 +1794,10 @@ Pembuatan project Supabase production dilakukan sekali oleh Owner di dashboard S
 Wizard menjalankan langkah berikut secara berurutan. Setiap langkah memeriksa kondisi saat ini dan melewatinya jika sudah sesuai.
 
 1. Preflight: menjalankan `doctor`. Jika Supabase CLI atau Vercel CLI belum login, wizard menjalankan login interaktif.
-2. Input: wizard meminta project ref Supabase, nama project Vercel, password database Supabase (tidak disimpan), username Super Admin awal, dan password Super Admin awal yang diisi dua kali.
+2. Input: wizard meminta project ref Supabase, nama project Vercel, username Super Admin awal, dan password Super Admin awal yang diisi dua kali. Password database tidak diminta oleh wizard GATEOPS; `supabase link` menampilkan prompt opsional dari CLI yang dapat diisi atau dilewati dengan Enter.
 3. Secret: wizard membuat `GATEOPS_INTERNAL_SECRET` acak 32 byte base64url jika belum ada di `.env.local`.
 4. Dependensi: `pnpm install --frozen-lockfile`.
-5. Koneksi: `supabase link --project-ref <ref>`.
+5. Koneksi: `supabase link --project-ref <ref>`. Prompt password database dari Supabase CLI bersifat opsional. Jika Owner memasukkan password, Supabase CLI menyimpannya di native credentials storage bila tersedia; jika dikosongkan, validasi koneksi database saat link dilewati. Operasi database berikutnya menggunakan autentikasi CLI yang tersedia dan dapat meminta kredensial jika diperlukan.
 6. Migrasi: `supabase db push` untuk seluruh migrasi yang belum diterapkan.
 7. Ekstensi: migrasi pertama mengaktifkan pgTAP dan pg_cron. Jika belum aktif, migrasi mengaktifkannya.
 8. Edge Functions: `supabase functions deploy` untuk seluruh fungsi sesuai `config.toml`.
@@ -1815,7 +1815,7 @@ Untuk target local, langkah 5 sampai 12 diganti dengan: `supabase start`, `supab
 | Nama | Lokasi | Keterangan |
 |---|---|---|
 | SUPABASE_PROJECT_REF | Lokal (wizard) | Project ref production |
-| SUPABASE_DB_PASSWORD | Tidak disimpan | Diminta saat setup, digunakan untuk link |
+| SUPABASE_DB_PASSWORD | Tidak dikelola wizard | Opsional untuk Supabase CLI jika diberikan melalui environment; GATEOPS tidak meminta, menyimpan, atau mencatat nilainya |
 | SUPABASE_FUNCTIONS_URL | Vercel env, `.env.local` | URL `https://<ref>.supabase.co/functions/v1` atau localhost untuk local |
 | SUPABASE_ANON_KEY | Vercel env, `.env.local` | Hanya untuk header Authorization BFF. Bukan secret, tetapi tidak dikirim ke browser |
 | GATEOPS_INTERNAL_SECRET | Vercel env, Supabase secret, `.env.local` | Secret antara BFF dan Edge Functions |
