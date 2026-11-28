@@ -268,7 +268,7 @@ Rujukan: PRD 12–21, 20.2 (rute), 10.6 (kamera), 11 (GPS klien), 14 (PDF).
 Rujukan: PRD 25, 26.4.
 
 - [x] 6.1 — `doctor.ts` (prasyarat, login, koneksi, RLS, grant RPC, health) — PRD 25.6
-- [x] 6.2 — `setup.ts` target production (alur 25.3, idempoten) — PRD 25.3, 25.5, FR-55, S-19
+- [~] 6.2 — `setup.ts` target production (alur 25.3, idempoten) — PRD 25.3, 25.5, FR-55, S-19
 - [x] 6.3 — `setup.ts --target local` (supabase start/reset, functions serve, bootstrap SA) — PRD 25.3, S-19
 - [x] 6.4 — `release.ts` (urutan 26.4, stop bila gagal) — PRD 26.4, FR-55, S-20
 - [x] 6.5 — `seed-demo.ts` (tolak non-local, kredensial di `.local/`) — PRD 25.7
@@ -500,3 +500,4 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-27 | PRD 7.4.3 (klarifikasi Owner) | PRD 7.4.3, FR-05 | - | `integration.check` PASS (kunci lewat -> gagal baru 401, login benar 200) | `failed_login_count` dan `locked_until` direset saat masa kunci lewat; kegagalan baru dihitung dari 0. PRD 7.4.3 diperbarui sesuai keputusan Owner. |
 | 2026-11-27 | gap/bug lanjutan | PRD 16.3, 16.5, 25.3.11, 25.5.1, 11.2, 7.4.3 | - | `pnpm test:db` 36/36; `deno task check`; `integration.check` PASS; `pnpm lint`/`typecheck`/`build` sukses; E2E 17/17 (1 skipped) | form ubah akun kini menerima pangkat/jabatan dari server, audit `ACCOUNT_UPDATED` hanya mencatat field berubah, URL production setup memakai `https://`, koordinat non-number/string kosong ditolak, release local memakai doctor target local, setup local idempoten (db reset dilewati) |
 | 2026-11-28 | validasi laporan & filter akun | PRD 22.5, 21.5 | - | `integration.check` PASS; `pnpm lint`/`typecheck` sukses; `deno task check` sukses | tanggal laporan tidak valid/terbalik ditolak 400, filter role akun reset ke halaman 1, pencarian audit di-escape |
+| 2026-11-28 | 6.2 (review) | FR-55, S-19, S-20; PRD 25.3-25.5 | fix/production-setup-wizard | Sedang dikerjakan; tes input wizard ditulis sebelum implementasi | Perbaiki input project ref dan penggunaan password DB pada `supabase link`; belum menjalankan setup/deploy production |
