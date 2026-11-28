@@ -1,5 +1,5 @@
 // Wizard setup (PRD 25.2/25.3). Idempoten. Tidak mencetak secret.
-import { existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { execFileSync, spawn } from "node:child_process";
 import { createInterface } from "node:readline/promises";
@@ -102,10 +102,16 @@ async function setupLocal(): Promise<void> {
     log("Edge Functions lokal sudah berjalan.");
   } catch {
     const logFd = openSync(".setup/functions.log", "a");
-    const child = spawn("supabase", ["functions", "serve", "--env-file", ".env.local"], {
-      detached: true,
-      stdio: ["ignore", logFd, logFd],
-    });
+    let child;
+    try {
+      child = spawn("supabase", ["functions", "serve", "--env-file", ".env.local"], {
+        detached: true,
+        stdio: ["ignore", logFd, logFd],
+      });
+    } finally {
+      closeSync(logFd);
+    }
+    child.once("error", () => log("Gagal memulai proses Edge Functions lokal."));
     child.unref();
     log("Menunggu health Edge Functions lokal.");
     await waitForLocalFunctionsHealth();
