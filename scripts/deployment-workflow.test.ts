@@ -58,22 +58,13 @@ test("FR-55/S-20: CI and production pin Supabase CLI to the repository version",
     assert.match(source, /uses: supabase\/setup-cli@v3/);
     assert.match(
       source,
-      new RegExp(
-        "version: " +
-          packageJson.devDependencies.supabase.replaceAll(".", "\\."),
-      ),
+      new RegExp("version: " + packageJson.devDependencies.supabase.replaceAll(".", "\\.")),
     );
     assert.doesNotMatch(source, /version: latest/);
   }
 });
 
 test("FR-55/S-20: production hosted mutations are explicitly non-interactive", () => {
-  assert.match(
-    workflow,
-    /supabase db push --remote "\$SUPABASE_PROJECT_REF" --yes/,
-  );
-  assert.match(
-    workflow,
-    /supabase functions deploy --project-ref "\$SUPABASE_PROJECT_REF" --yes/,
-  );
+  assert.match(workflow, /supabase db push --remote "\$SUPABASE_PROJECT_REF" --yes/);
+  assert.match(workflow, /supabase functions deploy --project-ref "\$SUPABASE_PROJECT_REF" --yes/);
 });
