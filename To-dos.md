@@ -285,7 +285,7 @@ Rujukan: PRD 27, AGENTS 10.
 - [x] 7.2 — Unit Edge (Deno test): hashing, validasi, constant-time, sesi — PRD 27.1
 - [x] 7.3 — Integration API (Deno test vs Supabase local): tiap endpoint tiap role — PRD 27.1
 - [x] 7.4 — pgTAP (lihat Fase 1.6) — PRD 27.1
-- [x] 7.5 — E2E Playwright alur Bagian 19 — PRD 27.1, 19
+- [~] 7.5 — E2E Playwright alur Bagian 19 — PRD 27.1, 19
 - [~] 7.6 — Tes setup idempotensi `setup --target local`, file secret Edge Functions, dan readiness — PRD 27.2 S-19
 - [x] 7.7 — Tes konsistensi pesan `messages.ts` server vs UI vs PRD — AGENTS 10.3
 - [x] 7.8 — Tes ambang waktu 60 detik & 15 menit dengan clock dapat diatur — AGENTS 10.1
@@ -507,3 +507,5 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-28 | 6.3, 7.6, CI integration/E2E | PRD 25.3 local, FR-55, S-19, 27.3 | docs/optional-supabase-db-password | Tes readiness ditambahkan; menunggu CI untuk bukti runtime | Ganti pemanggilan `pnpm setup` menjadi `pnpm run setup`; wizard lokal memastikan Edge Functions sehat sebelum bootstrap; workflow tidak memulai server duplikat; tes retry/readiness dan dokumentasi setup lokal ditambahkan |
 
 | 2026-11-28 | 6.3, 7.6, CI integration/E2E | PRD 25.3–25.5, FR-55, S-19, 27.3 | docs/optional-supabase-db-password | Tes helper env ditambahkan; menunggu CI ulang | Log CI #25 membuktikan health publik merespons 200 tetapi bootstrap mendapat 401 karena secret tidak dimuat Edge Functions. Setup kini menulis secret ke `supabase/functions/.env` sebelum stack dimulai; file di-ignore Git; CI tidak memulai Supabase sebelum wizard. |
+
+| 2026-11-28 | 7.5, 6.3, 7.6 | PRD 25.3–25.4, FR-55, S-19; FR-01, FR-06, FR-07, FR-22, FR-23, FR-29, FR-30, FR-34, FR-36; S-01, S-04, S-09, S-10, S-11; PRD 27.2–27.4 | docs/optional-supabase-db-password | Tes parser env ditambahkan; CI #37 dijalankan ulang, hasil menunggu | CI #35 menunjukkan Playwright web server tidak menerima SUPABASE_ANON_KEY karena setup menulis `.env.local` di root sedangkan Next dijalankan dari `apps/web`. Ditambahkan helper pemuatan env root, tes unit untuk precedence/absent file, dan env forwarding ke Playwright webServer. E2E sebelumnya 4 passed, 13 failed akibat ENV_MISSING dan login 500; belum menandai E2E selesai. |
