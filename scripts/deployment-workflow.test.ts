@@ -22,6 +22,10 @@ test("FR-55 S-20: Supabase deployment uses repository secrets and never requests
   assert.doesNotMatch(workflow, /SUPABASE_SERVICE_ROLE_KEY/);
 });
 
+test("FR-55 S-20: Supabase project linking receives the database password non-interactively", () => {
+  assert.match(workflow, /supabase link --project-ref "\$SUPABASE_PROJECT_REF" --password "\$SUPABASE_DB_PASSWORD"/);
+});
+
 test("FR-55 S-20: database migrations run before Edge Functions deployment", () => {
   const migration = workflow.indexOf("supabase db push");
   const functions = workflow.indexOf("supabase functions deploy");
