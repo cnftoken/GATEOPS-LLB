@@ -305,7 +305,7 @@ Rujukan: PRD 27.3.
 - [x] 8.5 — Workflow: integration API — PRD 27.3
 - [x] 8.6 — Workflow: E2E Playwright — PRD 27.3
 - [x] 8.7 — Workflow: build web — PRD 27.3
-- [~] 8.8 — Workflow: audit dependensi (gagal bila high/critical) — PRD 27.3
+- [x] 8.8 — Workflow: audit dependensi (gagal bila high/critical) — PRD 27.3
 
 ---
 
@@ -330,7 +330,7 @@ Rujukan: PRD 27.3.
 ### 10. Checklist Produksi (PRD 26.7)
 
 - [x] 10.9 — `pnpm doctor` lulus — PRD 26.7
-- [~] 10.10 — Seluruh pengujian CI lulus — PRD 26.7 (dependency audit high/critical sedang diperbaiki)
+- [~] 10.10 — Seluruh pengujian CI lulus — PRD 26.7 (audit lokal bebas high/critical; menunggu CI PR)
 - [x] 10.11 — Migrasi diterapkan & diuji di local — PRD 26.7
 - [x] 10.12 — RLS aktif seluruh tabel; tak ada RPC anon/authenticated — PRD 26.7
 - [ ] 10.13 — Header keamanan terlihat di production — PRD 26.7
@@ -521,3 +521,5 @@ Agen WAJIB menambah satu baris setiap menyelesaikan item. Sertakan bukti (perint
 | 2026-11-28 | verifikasi ulang gerbang CI | PRD 27.3–27.4; FR-55; S-19, S-20 | CI #45, head `54f8fba2633913a75483788266c8c55d68070424` | Lint/format, typecheck, unit UI/Edge, pgTAP, Integration API, E2E Playwright, dan build web: sukses. Dependency audit: gagal, 59 temuan (7 low, 29 moderate, 22 high, 1 critical). | CI #45 mengonfirmasi ulang seluruh job aplikasi lulus; satu-satunya blocker tetap audit dependency. Log mengonfirmasi rantai rentan dari `vercel@67.0.0`, termasuk `tar@7.5.11`, `undici@5.28.4`, `@fastify/busboy@2.1.1`, dan `zod@4.1.11`. Item 10.10 tetap `[!]`; tidak ada bypass, merge, atau deployment production. |
 
 | 2026-11-28 | verifikasi ulang gerbang CI | PRD 27.3–27.4; FR-55; S-19, S-20 | CI #46, head `1cc46ae83dbf74ce7d485e06e0ab9d3c37e1c6bd` | 7/8 job lulus: lint/format, typecheck, pgTAP, unit UI/Edge, E2E Playwright, build web, Integration API. Dependency audit gagal dengan 59 temuan (7 low, 29 moderate, 22 high, 1 critical). | Hasil mengonfirmasi tidak ada regresi pada job aplikasi. Audit tetap memblokir sesuai PRD 27.3. Temuan transitif termasuk `tar@7.5.11`, `undici@5.28.4`, `@fastify/busboy@2.1.1`, `zod@4.1.11`, `js-yaml@4.1.1`, dan `smol-toml@1.5.2`. Tidak ada override/upgrade spekulatif, bypass, merge, atau deployment production. |
+
+| 2026-11-28 | 8.8, 10.10 | PRD 27.3, 26.7; FR-55 | fix/dependency-audit-vercel-cli (belum ada commit ebe3995 di workspace) | `pnpm install --frozen-lockfile` PASS; `pnpm audit --audit-level high` 0 temuan; `pnpm lint`/`typecheck`/`test` (unit 21/21 + setup/audit 15/15)/`build` sukses; `deno task check`/`test` 32/32 | Commit `ebe3995` tidak tersedia di repository; branch remote berada di `4ba7b97` lalu digabung dengan `origin/main`. Dependensi `vercel@67.0.0` tidak dipakai kode dan dihapus; lockfile di-regenerasi; tes regresi `scripts/dependency-audit.test.ts` gagal sebelum perubahan (22 high + 1 critical) dan lulus setelahnya. CI audit tetap aktif pada PR dan push main; 10.10 tetap `[~]` sampai CI PR lulus. Tidak ada bypass, merge, atau deployment production. |
