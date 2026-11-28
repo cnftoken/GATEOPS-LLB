@@ -69,6 +69,7 @@ Setiap tugas WAJIB mengikuti langkah berikut:
 6. Tulis tes terlebih dahulu untuk perilaku yang diubah, minimal tes yang merujuk ID FR atau skenario.
 7. Implementasikan perubahan dengan perubahan sekecil mungkin.
 8. Jalankan gerbang lokal: lint, typecheck, unit, dan integration yang relevan. Jalankan pgTAP jika menyentuh migrasi atau RPC.
+   - Sebelum lint, format seluruh file yang diubah menggunakan formatter repository: `pnpm exec prettier --write <path-file-yang-diubah>`. DILARANG menebak format secara manual atau mengubah konfigurasi Prettier untuk meloloskan CI. Setelah itu WAJIB jalankan `pnpm lint` dan pastikan `prettier --check` lulus.
 9. Perbarui dokumentasi operasional di `docs/` jika perilaku setup, deployment, atau restore berubah.
 10. Tandai item di `To-dos.md` sebagai `[x]` dengan bukti, dan isi tabel Log Perubahan di `To-dos.md`.
 11. Laporkan hasil dengan daftar FR atau skenario yang tercakup dan perintah tes yang dijalankan.
