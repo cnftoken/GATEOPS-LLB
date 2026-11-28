@@ -48,7 +48,7 @@ Workflow ini manual dan tidak berjalan otomatis saat push atau merge. Jalankan h
 
 ## 4. Deploy ulang web
 
-Setelah workflow Supabase berhasil, deploy web melalui dashboard Vercel. Jika auto deployment Vercel aktif, perubahan pada `main` akan memicu deployment sesuai pengaturan project.
+Untuk perubahan yang menyentuh database atau Edge Functions, nonaktifkan auto deployment Vercel sebelum merge. Setelah workflow Supabase berhasil, deploy web secara manual melalui dashboard Vercel. Untuk perubahan web saja, auto deployment Vercel boleh tetap aktif. Dengan demikian, web baru tidak akan aktif sebelum backend yang dibutuhkannya tersedia.
 
 ## 5. Aturan keamanan
 
